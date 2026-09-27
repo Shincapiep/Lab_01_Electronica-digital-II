@@ -1,6 +1,6 @@
  Laboratorio 01: FPGA (Zybo Z7), Vivado/Vitis y Validación de Hardware
-**Asignatura:** Electrónica Digital II  
-**Semestre:** 2026-2  
+- **Asignatura:** Electrónica Digital II  
+- **Semestre:** 2026-2  
 
 ---
 
