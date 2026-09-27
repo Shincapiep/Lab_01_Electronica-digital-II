@@ -65,11 +65,7 @@ Resultado del código
 ...
 SMOKE TEST (simulacion):
 ```
-
-La simulación reproduce el comportamiento observado en la tarjeta (secciones 2.5 y 2.6).
-fffff, img
-
-![Simulación del semáforo en GTKWave](src/imgs/sim_semaforo.png)
+![Simulación del semáforo en GTKWave](rgb/gtk.png)
 
 - **Rojo (`001`)** desde el primer flanco (4 ns) hasta que `counter` llega a 10.
 - **Amarillo (`101`)** desde que `counter` pasa de 10 a 11, y **verde (`100`)** desde que pasa de 20 a 21.
