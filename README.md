@@ -80,7 +80,7 @@ El LED RGB no tiene un canal amarillo propio: el amarillo se obtiene encendiendo
 
 
 
-3.2 Entradas y construcción de operandos
+- *3.2 Entradas y construcción de operandos*
 Entrada	Origen	Uso
 `SW\[3:0]`	Switches de la tarjeta	[T16, W13, P15, G15] Construyen un número de 4 bits
 `BTN\[3:0]`	Botones de la tarjeta	[Y16, K19, P16, K18] Construyen un número de 4 bits
@@ -88,18 +88,18 @@ Entrada	Origen	Uso
 `BTN\[5]`	Botón externo (Pmod [JC], pin [W14]) Cuado se acciona invierte el número generado por el arreglo de botones de la tarjeta
 Botones externos: en la Zybo Z7, BTN4 y BTN5 están conectados a pines MIO del procesador (PS) y no son accesibles directamente desde la lógica programable. Por esta razón se agregaron dos pulsadores externos con resistencia de pull-down de [10k] Ω conectados al puerto Pmod JD
 
-4.3 Operaciones implementadas
+- *3.3 Operaciones implementadas* 
 - *Suma*
 - *Resta*
 - *Compara* si los números ingresados son iguales.
 La operación a realizar se realiza mediante el uso de uno de lo botones, la resta es la operación por defecto. Si los número son iguales se detecta de forma automática.
-4.4 Salidas
+- *3.4 Salidas* 
 Salida	- Significado
 `LED\[3:0]`	[ ] Enseña el resultado de la operación
 `LED\_RGB` Amarillo	[ ] Identifica si los dos numeros son iguales. 
 `LED\_RGB` Blanco	[ ]  Identifica si se realiza una resta.
 `LED\_RGB` Rojo	[ ]
-4.5 Evidencia
+- *3.5 Evidencia*
 Debido al peso de los videos grabados mostranso el funcionamiento, se decidio subirlos a youtube, a continuación se encuentran los respectivos link
 - *Suma*
 https://www.youtube.com/post/UgkxqJWBuRDRpbTTP529ywnDsrrxRszGwlTm
@@ -110,4 +110,4 @@ http://youtube.com/post/UgkxSmo_cgUaAY2VPtY3IEqNEs5w1QeJdv0Z?si=hmwzP5bkY0CaG0Qi
 - *Comparación*
 http://youtube.com/post/Ugkx4-mQdEe4J9XcFDsBRo5mgFXRNFOoItOl?si=AX0MZMJWkvbgoTGe
 ---
-5. Conclusiones
+- *4. Conclusiones*
