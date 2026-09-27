@@ -26,13 +26,68 @@ Fuentes	`semaforo.v` / `test\_funcional.v`
 Constraints	`Zybo-Z7.xdc` (Digilent)
 ---
 - *2. Smoke Test: semáforo en LED RGB*
+
+### 2.1 Simulación (testbench)
+
+Antes de programar la tarjeta, el diseño se verificó con un testbench autoverificable (`src/tb_semaforo.v`):
+
+| Aspecto | Valor en simulación |
+|---|---|
+| Reloj | 125 MHz (periodo de 8 ns, igual al de la tarjeta) |
+| `N_ESTADO` | 10 ciclos (se sobrescribe con `#(.N_ESTADO(10))`) |
+
+
+En cada cambio de `led`, el testbench comprueba:
+
+ **La duración:** que el estado anterior haya durado `N_ESTADO * T_clk = 10 * 8 ns = 80 ns`, o 88 ns en el caso del último amarillo.
+
+Al final imprime `PASO` o `FALLO` con el número de errores, y tiene un *timeout* por si el LED nunca cambia.
+
+**Ejecución con Icarus Verilog y GTKWave** (desde `src/`):
+
+```bash
+iverilog -g2005 -o sim tb_semaforo.v semaforo.v
+vvp sim
+gtkwave tb_semaforo.vcd
+```
+Resultado del código
+
+```
+[4.0 ns] OK: ROJO
+[84.0 ns] OK: AMARILLO
+           duracion estado anterior = 80.0 ns
+[164.0 ns] OK: VERDE
+           duracion estado anterior = 80.0 ns
+[244.0 ns] OK: AMARILLO
+           duracion estado anterior = 80.0 ns
+[332.0 ns] OK: ROJO
+           duracion estado anterior = 88.0 ns
+...
+SMOKE TEST (simulacion):
+```
+
+La simulación reproduce el comportamiento observado en la tarjeta (secciones 2.5 y 2.6).
+fffff, img
+
+![Simulación del semáforo en GTKWave](src/imgs/sim_semaforo.png)
+
+- **Rojo (`001`)** desde el primer flanco (4 ns) hasta que `counter` llega a 10.
+- **Amarillo (`101`)** desde que `counter` pasa de 10 a 11, y **verde (`100`)** desde que pasa de 20 a 21.
+- **Retardo de un ciclo:** `led` es un registro; la condición `counter == N_ESTADO` se evalúa en un flanco y el nuevo color aparece en ese mismo flanco, cuando `counter` ya vale 11. La duración de cada estado no cambia (10 ciclos = 80 ns).
+- **Valor inicial:** antes del primer flanco `led` vale `X` (en rojo en GTKWave) porque el registro no tiene valor inicial. En la FPGA arranca en 0, es decir, el LED apagado durante 8 ns.
 - *2.1 Objetivo*
 Verificar el flujo completo HDL → síntesis → implementación → bitstream → programación por JTAG, junto con el reloj de la tarjeta y el mapeo de pines del `.xdc`, usando el diseño subido en la guia del labratorio.
+
 - *2.2 Funcionamiento del código*
 El módulo `Semaforo` tiene una entrada de reloj `clk` y una salida `led\[2:0]` que controla los tres canales del LED RGB. Está compuesto por dos bloques síncronos:
 Contador: incrementa `counter` en cada flanco de subida de `clk` y lo reinicia al llegar a 320 000 000.
 Selector de color: cuando `counter` alcanza 0, 80e6, 160e6 y 240e6, cambia el valor de `led`. Entre esos instantes el registro conserva su valor, por lo que el color se mantiene.
 Temporización (reloj de 125 MHz en el pin K17):
+
+La duración de cada estado se definió como el parámetro `N_ESTADO` (80e6 por defecto), del cual se derivan los demás umbrales (`N_TOTAL = 4*N_ESTADO`). En síntesis se usa el valor por defecto; en simulación se reduce para no simular 320 millones de ciclos.
+
+Como el contador va de 0 a 320e6 **inclusive**, el último estado dura un ciclo más que los demás (8 ns sobre 2.56 s), lo cual es imperceptible.
+
 ```
 T\_clk    = 1 / f\_clk        = 1 / 125e6 Hz        = 8 ns
 t\_estado = N\_estado \* T\_clk = 80e6 \* 8 ns          = 0.64 s
@@ -61,6 +116,9 @@ Señal HDL	Pin	Canal
 `led\[1]`	M17	Azul
 `led\[2]`	F17	Verde
 `create\_clock` informa a la herramienta que el reloj tiene un periodo de 8 ns, que es el valor que usa el análisis de tiempos durante la implementación.
+La duración de cada estado se definió como el parámetro `N_ESTADO` (80e6 por defecto), del cual se derivan los demás umbrales (`N_TOTAL = 4*N_ESTADO`). En síntesis se usa el valor por defecto; en simulación se reduce para no simular 320 millones de ciclos.
+
+Como el contador va de 0 a 320e6 **inclusive**, el último estado dura un ciclo más que los demás (8 ns sobre 2.56 s), lo cual es imperceptible.
 - *2.3 Evidencia de la correcta implementación*
 https://github.com/user-attachments/assets/e99ffdbc-6585-4a58-9e17-00986aa4bfc6
 
@@ -69,6 +127,7 @@ Que la FPGA se programa correctamente por JTAG.
 Que el reloj de 125 MHz está presente y el `create\_clock` es coherente con la temporización observada.
 Que los tres canales del LED RGB responden y están asignados a pines válidos en el `.xdc`.
 La aparición del color azul en lugar del amarillo se explica en la sección siguiente.
+
 - *2.4 Observaciones sobre el código base*
 
 1	El amarillo se codificaba como `3'b010`	Según el `.xdc`, `led\[1]` corresponde al canal azul (M17), por lo que el estado "amarillo" se vio azul	Se cambió a `3'b101` (R + G) en `src/semaforo.v`
