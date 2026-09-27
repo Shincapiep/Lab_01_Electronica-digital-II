@@ -73,7 +73,7 @@ La aparición del color azul en lugar del amarillo se explica en la sección sig
 
 1	El amarillo se codificaba como `3'b010`	Según el `.xdc`, `led\[1]` corresponde al canal azul (M17), por lo que el estado "amarillo" se vio azul	Se cambió a `3'b101` (R + G) en `src/semaforo.v`
 El LED RGB no tiene un canal amarillo propio: el amarillo se obtiene encendiendo simultáneamente los canales rojo y verde. Con el mapeo del `.xdc` (`led = {G, B, R}`), eso corresponde a `3'b101`.
-> \*\*Nota:\*\* la corrección 2 se identificó al analizar el video. La versión corregida incluida en `src/semaforo.v` no quedó registrada en el video de la prueba.
+> \*\*Nota:\*\* la corrección de colores se identificó al analizar el video. La versión corregida incluida en `src/semaforo.v` no quedó registrada en el video de la prueba.
 ---
 - *3. Test Funcional Propuesta propia*
 - *3.1 Descripción del diseño*
