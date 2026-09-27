@@ -17,7 +17,7 @@
 - **Conclusiones**
 
 ---
-1. Instalación y configuración del proyecto
+- *1. Instalación y configuración del proyecto*
 Se instalaron Vivado y Vitis 2025.2 mediante el AMD Unified Installer y se activó la licencia Vivado Basic Tier.
 El proyecto se creó como RTL Project con los siguientes parámetros:
 Parámetro	Valor
@@ -61,7 +61,7 @@ Señal HDL	Pin	Canal
 `led\[1]`	M17	Azul
 `led\[2]`	F17	Verde
 `create\_clock` informa a la herramienta que el reloj tiene un periodo de 8 ns, que es el valor que usa el análisis de tiempos durante la implementación.
-- *2.4 Evidencia de la correcta implementación*
+- *2.3 Evidencia de la correcta implementación*
 https://github.com/user-attachments/assets/e99ffdbc-6585-4a58-9e17-00986aa4bfc6
 
 En la prueba se programó el código base. Se observó la secuencia cíclica rojo → azul → verde → azul, con una duración aproximada de 0.64 s por estado, lo que confirma:
@@ -69,7 +69,7 @@ Que la FPGA se programa correctamente por JTAG.
 Que el reloj de 125 MHz está presente y el `create\_clock` es coherente con la temporización observada.
 Que los tres canales del LED RGB responden y están asignados a pines válidos en el `.xdc`.
 La aparición del color azul en lugar del amarillo se explica en la sección siguiente.
-- *2.6 Observaciones sobre el código base*
+- *2.4 Observaciones sobre el código base*
 
 1	El amarillo se codificaba como `3'b010`	Según el `.xdc`, `led\[1]` corresponde al canal azul (M17), por lo que el estado "amarillo" se vio azul	Se cambió a `3'b101` (R + G) en `src/semaforo.v`
 El LED RGB no tiene un canal amarillo propio: el amarillo se obtiene encendiendo simultáneamente los canales rojo y verde. Con el mapeo del `.xdc` (`led = {G, B, R}`), eso corresponde a `3'b101`.
