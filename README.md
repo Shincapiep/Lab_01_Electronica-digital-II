@@ -64,8 +64,6 @@ Señal HDL	Pin	Canal
 - *2.4 Evidencia de la correcta implementación*
 https://github.com/user-attachments/assets/e99ffdbc-6585-4a58-9e17-00986aa4bfc6
 
-
-[Video del semáforo funcionando en la Zybo Z7]
 En la prueba se programó el código base. Se observó la secuencia cíclica rojo → azul → verde → azul, con una duración aproximada de 0.64 s por estado, lo que confirma:
 Que la FPGA se programa correctamente por JTAG.
 Que el reloj de 125 MHz está presente y el `create\_clock` es coherente con la temporización observada.
