@@ -34,11 +34,16 @@ El proyecto se creó como **RTL Project** con los siguientes parámetros:
 
 \---
 
-## 2\. Smoke Test: semáforo en LED RGB
+## 2\. Smoke Test: Semáforo en LED RGB
 
-### 2.1 Objetivo
+### 2.1 Objetivo Del Ejercicio
 
-Verificar el flujo completo **HDL → síntesis → implementación → bitstream → programación por JTAG**, junto con el reloj de la tarjeta y el mapeo de pines del `.xdc`, usando el diseño entregado en la guía del laboratorio.
+* Validar la correcta instalación y funcionamiento del entorno de desarrollo: Visual Studio Code, Icarus Verilog (`iverilog`) y GTKWave.
+* Compilar y simular el módulo de control secuencial en Verilog (`Smoke_Test.v`) para confirmar la generación del archivo `.vcd`.
+* Inspeccionar y verificar la transición temporal de las salidas de los LEDs (`led[2:0]`) e interpretar la secuencia del semáforo en el visor GTKWave.
+* Verificar el flujo completo **HDL → Síntesis → Implementación → Bitstream → Programación por JTAG**, junto con el reloj de la tarjeta y el mapeo de pines del `.xdc`, usando el diseño entregado en la guía del laboratorio.
+
+---
 
 ### 2.2 Funcionamiento del código
 
