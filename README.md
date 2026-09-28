@@ -71,8 +71,26 @@ Se abrió la herramienta GTKWave y se cargó el archivo de simulación .vcd gene
 gtkwave tb_Smoke_Test.vcd
 ```
 
+---
 
-### 2.3 Funcionamiento del código
+### 2.3 Simulación Virtual en GTKwave
+
+En la siguiente imágen se observa el resultado de la simulación en gtkwave:
+
+<img width="1632" height="133" alt="image" src="https://github.com/user-attachments/assets/780c762d-366b-45e0-b48c-50d96c860661" />
+
+Como se puede ver en la imagen anterior, el comportamiento de la prueba fue el esperado, ya que la secuencia de salidas en el registro `led[2:0]` concuerda exactamente con los estados temporales programados para el semáforo.
+
+* **Comportamiento Estado Rojo (`led = 3'b001`):** Su valor está activo desde los 0 ns hasta los 105 ns, manteniéndose durante los primeros 10 ciclos del reloj.
+* **Comportamiento Estado Amarillo (`led = 3'b011`):** Su valor conmuta a los 105 ns y permanece activo hasta los 205 ns.
+* **Comportamiento Estado Verde (`led = 3'b010`):** Su valor se activa en el intervalo de 205 ns a 305 ns.
+* **Comportamiento Retorno a Amarillo (`led = 3'b011`):** Conmuta nuevamente a los 305 ns y se mantiene hasta los 405 ns.
+* **Reinicio de ciclo:** A los 405 ns el contador vuelve a cero reiniciando la secuencia en Estado Rojo (`3'b001`), para posteriormente conmutar de nuevo a Amarillo a los 505 ns.
+
+
+
+
+### 2.4 Funcionamiento del código
 
 El módulo `Semaforo` tiene una entrada de reloj `clk` y una salida `led\[2:0]` que controla los tres canales del LED RGB LD6. Está compuesto por dos bloques síncronos:
 
@@ -97,7 +115,7 @@ T\_ciclo  = N\_total  \* T\_clk = 320e6 \* 8 ns  = 2.56 s
 |240 000 000|Azul|`3'b010`|B|
 
 
-### 2.4 Mapeo de pines (`.xdc`)
+### 2.5 Mapeo de pines (`.xdc`)
 
 Solo se habilitaron las líneas del reloj y del LED RGB LD6, que eran las únicas necesarias para esta implementación:
 
@@ -121,7 +139,7 @@ set\_property -dict { PACKAGE\_PIN F17 IOSTANDARD LVCMOS33 } \[get\_ports { led\
 
 `create\_clock` informa a la herramienta que el reloj tiene un periodo de 8 ns, que es el valor que usa el análisis de tiempos durante la implementación.
 
-### 2.5 Simulación (testbench)
+### 2.6 Simulación (testbench)
 
 Antes de programar la tarjeta, el diseño se verificó con un testbench (`src/tb\_semaforo.v`):
 
@@ -173,7 +191,7 @@ SMOKE TEST (simulacion): PASO - 13 transiciones verificadas
 
 La secuencia simulada coincide con la observada en la tarjeta (sección 2.5).
 
-### 2.6 Evidencia en hardware
+### 2.7 Evidencia en hardware
 
 https://github.com/user-attachments/assets/e99ffdbc-6585-4a58-9e17-00986aa4bfc6
 
@@ -183,7 +201,7 @@ Se programó el código base con los estados descomentados. Se observó la secue
 * Que el reloj de 125 MHz está presente y el `create\_clock` es coherente con la temporización observada.
 * Que los tres canales del LED RGB responden y están asignados a pines válidos en el `.xdc`.
 
-### 2.7 Observaciones
+### 2.8 Observaciones
 
 En el código base, el segundo estado se comenta como "amarillo", pero se codifica como `3'b010`, que según el `.xdc` corresponde al canal azul (M17). Por eso la secuencia observada es rojo → azul → verde → azul. El LED RGB no tiene un canal amarillo propio: para obtenerlo habría que encender R y G a la vez (`3'b101`).
 
