@@ -44,8 +44,33 @@ El proyecto se creó como **RTL Project** con los siguientes parámetros:
 * Verificar el flujo completo **HDL → Síntesis → Implementación → Bitstream → Programación por JTAG**, junto con el reloj de la tarjeta y el mapeo de pines del `.xdc`, usando el diseño entregado en la guía del laboratorio.
 
 ---
+## 2.2 Descarga del Módulo Secuencial y Creación del Testbench:
 
-### 2.2 Funcionamiento del código
+Se descargo el archivo `Smoke_Test.v` y posteriormente se creó el archivo `tb_Smoke_Test.v` en Visual Studio Code. La función de cada uno es la siguiente:
+
+* `Smoke_Test.v`: Módulo secuencial que conmuta la salida `led[2:0]`.
+* `tb_Smoke_Test.v`: Banco de pruebas (*Testbench*) encargado de instanciar el módulo principal, generar el reloj (`clk`) y exportar los datos al archivo `.vcd`.
+
+Un detalle importante que es necesario destacar, es que durante el desarrollo del testbench se identificó una diferencia fundamental entre el comportamiento en hardware real y la simulación virtual:
+
+* **Hardware Real (FPGA):** Funciona a una frecuencia de reloj elevada (por ejemplo, $100\text{ MHz}$, equivalente a un periodo de $10\text{ ns}$). Para que los cambios de color del semáforo sean visibles al ojo humano (duración de segundos), se requieren contadores de escala masiva (como $80\,000\,000$ de ciclos para alcanzar $0.8\text{ segundos}$).
+* **Entorno de Simulación (Testbench / GTKWave):** Intentar simular $320\,000\,000$ de ciclos en un entorno virtual generaría archivos `.vcd` de varios gigabytes y exigiría tiempos de procesamiento extremadamente largos. Por esta razón, para la prueba en testbench se redujeron temporalmente los límites del contador a escala de decenas de ciclos ($10, 20, 30, 40$). Esto permite validar la máquina de estados y las transiciones del semáforo en tan solo $600\text{ ns}$ de tiempo simulado sin saturar los recursos del sistema.
+
+Se utilizó la terminal de Visual Studio Code para ejecutar la compilación del código mediante el ejecutable de Icarus Verilog (iverilog) especificando el nombre del archivo de salida compilado (tb_smoke_andor.vvp):
+```bash
+iverilog -o tb_Smoke_Test.vvp tb_Smoke_Test.v Smoke_Test.v
+```
+A continuación, se ejecutó el motor de simulación vvp para procesar el binario y generar el archivo `.vcd` correspondiente:
+```bash
+vvp tb_Smoke_Test.vvp
+```
+Se abrió la herramienta GTKWave y se cargó el archivo de simulación .vcd generado.
+```bash
+gtkwave tb_Smoke_Test.vcd
+```
+
+
+### 2.3 Funcionamiento del código
 
 El módulo `Semaforo` tiene una entrada de reloj `clk` y una salida `led\[2:0]` que controla los tres canales del LED RGB LD6. Está compuesto por dos bloques síncronos:
 
@@ -70,7 +95,7 @@ T\_ciclo  = N\_total  \* T\_clk = 320e6 \* 8 ns  = 2.56 s
 |240 000 000|Azul|`3'b010`|B|
 
 
-### 2.3 Mapeo de pines (`.xdc`)
+### 2.4 Mapeo de pines (`.xdc`)
 
 Solo se habilitaron las líneas del reloj y del LED RGB LD6, que eran las únicas necesarias para esta implementación:
 
@@ -94,7 +119,7 @@ set\_property -dict { PACKAGE\_PIN F17 IOSTANDARD LVCMOS33 } \[get\_ports { led\
 
 `create\_clock` informa a la herramienta que el reloj tiene un periodo de 8 ns, que es el valor que usa el análisis de tiempos durante la implementación.
 
-### 2.4 Simulación (testbench)
+### 2.5 Simulación (testbench)
 
 Antes de programar la tarjeta, el diseño se verificó con un testbench (`src/tb\_semaforo.v`):
 
@@ -146,7 +171,7 @@ SMOKE TEST (simulacion): PASO - 13 transiciones verificadas
 
 La secuencia simulada coincide con la observada en la tarjeta (sección 2.5).
 
-### 2.5 Evidencia en hardware
+### 2.6 Evidencia en hardware
 
 https://github.com/user-attachments/assets/e99ffdbc-6585-4a58-9e17-00986aa4bfc6
 
@@ -156,7 +181,7 @@ Se programó el código base con los estados descomentados. Se observó la secue
 * Que el reloj de 125 MHz está presente y el `create\_clock` es coherente con la temporización observada.
 * Que los tres canales del LED RGB responden y están asignados a pines válidos en el `.xdc`.
 
-### 2.6 Observaciones
+### 2.7 Observaciones
 
 En el código base, el segundo estado se comenta como "amarillo", pero se codifica como `3'b010`, que según el `.xdc` corresponde al canal azul (M17). Por eso la secuencia observada es rojo → azul → verde → azul. El LED RGB no tiene un canal amarillo propio: para obtenerlo habría que encender R y G a la vez (`3'b101`).
 
