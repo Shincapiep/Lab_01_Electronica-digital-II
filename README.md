@@ -299,8 +299,8 @@ Debido al peso de los videos, se subieron a Drive:
 |Prueba|Video|
 |-|-|
 |Suma|[Ver video](https://drive.google.com/file/d/1t9L1MJck8z5sETM7WIkysCyToE96TEmu/view?usp=drive_link)|
-|Resta|[Ver video]((https://drive.google.com/file/d/10wHqPUYK5qbUX6gKikMrIQrhTMwL7ZEu/view?usp=drive_link))|
-|Inversión (XOR)|[Ver video](https://drive.google.com/file/d/1NcaNUGEpHWUaIFor67Q67xMHiMcH-EaO/view?usp=drive_link))|
+|Resta|[Ver video](https://drive.google.com/file/d/10wHqPUYK5qbUX6gKikMrIQrhTMwL7ZEu/view?usp=drive_link)|
+|Inversión (XOR)|[Ver video](https://drive.google.com/file/d/1NcaNUGEpHWUaIFor67Q67xMHiMcH-EaO/view?usp=drive_link)|
 |Comparación (claves iguales)|[Ver video](https://drive.google.com/file/d/1cw_783hJGDOCyfy101v3lDOaaBDURRYa/view?usp=drive_link)|
 
 \---
