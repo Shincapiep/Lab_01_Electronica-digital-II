@@ -53,10 +53,12 @@ Se descargo el archivo `Smoke_Test.v` y posteriormente se creó el archivo `tb_S
 
 Un detalle importante que es necesario destacar, es que durante el desarrollo del testbench se identificó una diferencia fundamental entre el comportamiento en hardware real y la simulación virtual:
 
-* **Hardware Real (FPGA):** Funciona a una frecuencia de reloj elevada (por ejemplo, $100\text{ MHz}$, equivalente a un periodo de $10\text{ ns}$). Para que los cambios de color del semáforo sean visibles al ojo humano (duración de segundos), se requieren contadores de escala masiva (como $80\,000\,000$ de ciclos para alcanzar $0.8\text{ segundos}$).
-* **Entorno de Simulación (Testbench / GTKWave):** Intentar simular $320\,000\,000$ de ciclos en un entorno virtual generaría archivos `.vcd` de varios gigabytes y exigiría tiempos de procesamiento extremadamente largos. Por esta razón, para la prueba en testbench se redujeron temporalmente los límites del contador a escala de decenas de ciclos ($10, 20, 30, 40$). Esto permite validar la máquina de estados y las transiciones del semáforo en tan solo $600\text{ ns}$ de tiempo simulado sin saturar los recursos del sistema.
+* **Hardware Real (FPGA):** Funciona a una frecuencia de reloj elevada (por ejemplo, 100 MHz que equivalen a un periodo de $10\text{ ns}$). Por lo que si se busca que los cambios de color del semáforo sean visibles al ojo humano, se requieren contadores de escala enormes (como $80\,000\,000$ de ciclos para alcanzar $0.8\text{ segundos}$).
+* **Entorno de Simulación (Testbench / GTKWave):** Intentar simular $320\,000\,000$ de ciclos en un entorno virtual generaría archivos `.vcd` de varios gigabytes y exigiría tiempos de procesamiento extremadamente largos. Por esta razón, para el testbench se redujeron los límites del contador a escala de decenas de ciclos ($10, 20, 30, 40$). Esto permite validar la máquina de estados y las transiciones del semáforo en tan solo $600\text{ ns}$ de tiempo simulado sin saturar los recursos del sistema.
 
-Se utilizó la terminal de Visual Studio Code para ejecutar la compilación del código mediante el ejecutable de Icarus Verilog (iverilog) especificando el nombre del archivo de salida compilado (tb_smoke_andor.vvp):
+Teniendo en cuenta lo anterior, se crearon dos archivos `.v` para esta parte, uno denominado `Smoke_Test.v` que fue implementado para la creación y visualización del testbench y otro denominado `Smoke_Test_FPGA.v` que se usó para compilar y programar la FPGA. 
+
+Luego se utilizó la terminal de Visual Studio Code para ejecutar la compilación del código mediante el ejecutable de Icarus Verilog (iverilog) especificando el nombre del archivo de salida compilado:
 ```bash
 iverilog -o tb_Smoke_Test.vvp tb_Smoke_Test.v Smoke_Test.v
 ```
