@@ -298,10 +298,10 @@ Debido al peso de los videos, se subieron a YouTube:
 
 |Prueba|Video|
 |-|-|
-|Suma|[Ver video](https://www.youtube.com/post/UgkxqJWBuRDRpbTTP529ywnDsrrxRszGwlTm)|
-|Resta|[Ver video](http://youtube.com/post/UgkxCSxVErJU7BjNxqNJ24GnIfKiw0TfXPmx?si=q7t2bkdnnUVDWNZM)|
-|Inversión (XOR)|[Ver video](http://youtube.com/post/UgkxSmo_cgUaAY2VPtY3IEqNEs5w1QeJdv0Z?si=hmwzP5bkY0CaG0Qi)|
-|Comparación (claves iguales)|[Ver video](http://youtube.com/post/Ugkx4-mQdEe4J9XcFDsBRo5mgFXRNFOoItOl?si=AX0MZMJWkvbgoTGe)|
+|Suma|[Ver video](https://www.youtube.com/watch?v=L4_kwLU48mM)|
+|Resta|[Ver video](https://www.youtube.com/watch?v=677lXgQiJhQ)|
+|Inversión (XOR)|[Ver video](https://www.youtube.com/watch?v=rUI4XOiA60A)|
+|Comparación (claves iguales)|[Ver video](https://www.youtube.com/watch?v=h1Azy8Yfb6k)|
 
 \---
 
