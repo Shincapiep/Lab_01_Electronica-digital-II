@@ -93,7 +93,7 @@ Como se puede ver en la imagen anterior, el comportamiento de la prueba fue el e
 
 El módulo `Smoke_Test_FPGA` implementa el control secuencial de un LED RGB mediante una señal de reloj `clk`. El módulo recibe como entrada la señal de reloj de la FPGA y genera una salida de 3 bits `led[2:0]` conectada a los canales del LED RGB LD6 de la tarjeta Zybo Z7. El funcionamiento del diseño se basa en una arquitectura secuencial implementada mediante dos bloques `always @(posedge clk)`, los cuales se ejecutan en cada flanco ascendente de la señal de reloj:
 
-1. **Contador Principal:** El primer bloque corresponde al contador principal, cuya función es manejar los tiempos para determinar el momento en que debe cambiar el color del LED. La variable `counter` se inicializa en cero y se incrementa en una unidad en cada ciclo de reloj. Cuando el contador alcanza el valor de $320\,000\,000$, se reinicia a cero, permitiendo que la secuencia de colores se repita continuamente. Esto ocurre en el fragmento:
+1. **Contador Principal:** El primer bloque corresponde al contador principal, cuya función es manejar los tiempos para determinar el momento en que debe cambiar el color del LED. La variable `counter` se inicializa en cero y se incrementa en una unidad en cada ciclo de reloj. Cuando el contador alcanza el valor de 320\,000\,000$, se reinicia a cero, permitiendo que la secuencia de colores se repita continuamente. Esto ocurre en el fragmento:
 ```bash
 if (counter>=320000000) //Contador adaptado para la FPGA
         counter <= 0;
@@ -123,10 +123,10 @@ El comportamiento del LED puede dividirse en cuatro intervalos principales. Inic
 
 | Valor de `counter` | Intervalo de Ciclos | Estado Lógico | Salida `led[2:0]` | Canales Activos | Color Resultante |
 | :---: | :---: | :---: | :---: | :---: | :---: |
-| $0$ | $0 \le counter < 80 \times 10^6$ | Estado 1 | `3'b001` | Canal Rojo (`led[0]`) | 🔴 Rojo |
-| $80\,000\,000$ | $80 \times 10^6 \le counter < 160 \times 10^6$ | Estado 2 | `3'b011` | Rojo + Verde (`led[0]`, `led[1]`) | 🟡 Amarillo |
-| $160\,000\,000$ | $160 \times 10^6 \le counter < 240 \times 10^6$ | Estado 3 | `3'b010` | Canal Verde (`led[1]`) | 🟢 Verde |
-| $240\,000\,000$ | $240 \times 10^6 \le counter < 320 \times 10^6$ | Estado 4 | `3'b011` | Rojo + Verde (`led[0]`, `led[1]`) | 🟡 Amarillo |
+| 0 | 0 \le `counter` < 80 \times 10^6 | Estado 1 | `3'b001` | Canal Rojo (`led[0]`) | 🔴 Rojo |
+| 80\,000\,000 | 80 \times 10^6 \le `counter` < 160 \times 10^6 | Estado 2 | `3'b011` | Rojo + Verde (`led[0]`, `led[1]`) | 🟡 Amarillo |
+| 160\,000\,000 | 160 \times 10^6 \le `counter` < 240 \times 10^6 | Estado 3 | `3'b010` | Canal Verde (`led[1]`) | 🟢 Verde |
+| 240\,000\,000 | 240 \times 10^6 \le `counter` < 320 \times 10^6 | Estado 4 | `3'b011` | Rojo + Verde (`led[0]`, `led[1]`) | 🟡 Amarillo |
 
 **Nota de Comparación:** Mientras que en `Smoke_Test_FPGA.v` cada color dura 80\,000\,000 ciclos de reloj, para ser perfectamente apreciable en la FPGA, en la versión de simulación `Smoke_Test.v` cada estado dura únicamente 10 ciclos de reloj, lo cual permite verificar la transición correcta de estados en GTKWave sin sobrecargar el tiempo de cómputo.
 
