@@ -44,9 +44,9 @@ El proyecto se creó como **RTL Project** con los siguientes parámetros:
 * Verificar el flujo completo **HDL → Síntesis → Implementación → Bitstream → Programación por JTAG**, junto con el reloj de la tarjeta y el mapeo de pines del `.xdc`, usando el diseño entregado en la guía del laboratorio.
 
 ---
-## 2.2 Descarga del Módulo Secuencial y Creación del Testbench:
+### 2.2 Descarga del Módulo Secuencial y Creación del Testbench:
 
-Se descargo el archivo `Smoke_Test.v` y posteriormente se creó el archivo `tb_Smoke_Test.v` en Visual Studio Code. La función de cada uno es la siguiente:
+Se descargó el archivo `Smoke_Test.v` y posteriormente se creó el archivo `tb_Smoke_Test.v` en Visual Studio Code. La función de cada uno es la siguiente:
 
 * `Smoke_Test.v`: Módulo secuencial que conmuta la salida `led[2:0]`.
 * `tb_Smoke_Test.v`: Banco de pruebas (*Testbench*) encargado de instanciar el módulo principal, generar el reloj (`clk`) y exportar los datos al archivo `.vcd`.
@@ -87,7 +87,47 @@ Como se puede ver en la imagen anterior, el comportamiento de la prueba fue el e
 * **Comportamiento Retorno a Amarillo (`led = 3'b011`):** Conmuta nuevamente a los 305 ns y se mantiene hasta los 405 ns.
 * **Reinicio de ciclo:** A los 405 ns el contador vuelve a cero reiniciando la secuencia en Estado Rojo (`3'b001`), para posteriormente conmutar de nuevo a Amarillo a los 505 ns.
 
+---
 
+### 2.4 Funcionamiento y Análisis del Código
+
+El módulo `Smoke_Test` recibe una entrada de reloj `clk` y controla una salida de 3 bits `led[2:0]` conectada a los canales del LED RGB LD6 de la tarjeta Zybo Z7. El diseño utiliza una arquitectura secuencial basada en dos bloques síncronos `always @(posedge clk)`:
+
+1. **Contador Principal:** Incrementa la variable `counter` en cada flanco de subida del reloj. Cuando el contador alcanza el límite establecido ($N_{total}$), se reinicia a $0$.
+2. **Máquina de Estados de Selección de Color:** Evalúa el valor de `counter` y actualiza el registro `led[2:0]`. Al ser asignaciones no bloqueantes (`<=`), el registro mantiene su estado hasta que el contador alcance el siguiente umbral.
+
+#### Temporización y Cálculos de Frecuencia
+
+La tarjeta Zybo Z7-20 provee un reloj del sistema de $125\text{ MHz}$ en el pin `K17`:
+
+$$T_{clk} = \frac{1}{f_{clk}} = \frac{1}{125\text{ MHz}} = 8\text{ ns}$$
+
+Las ecuaciones de temporización que rigen la duración de cada estado ($t_{estado}$) y del ciclo completo ($T_{ciclo}$) son:
+
+$$t_{estado} = N_{estado} \cdot T_{clk}$$
+
+$$T_{ciclo} = N_{total} \cdot T_{clk}$$
+
+* **Comportamiento en Hardware Real (FPGA):**
+  * Umbral por estado: $N_{estado} = 80\,000\,000$ ciclos.
+  * Duración por color: $t_{estado} = 80\,000\,000 \cdot 8\text{ ns} = 0.64\text{ s}$.
+  * Periodo del ciclo completo ($N_{total} = 320\,000\,000$): $T_{ciclo} = 320\,000\,000 \cdot 8\text{ ns} = 2.56\text{ s}$.
+
+* **Comportamiento en Simulación (Testbench a $100\text{ MHz}$ / $T_{clk} = 10\text{ ns}$):**
+  * Umbral por estado: $N_{estado\_sim} = 10$ ciclos.
+  * Duración por color: $t_{estado\_sim} = 10 \cdot 10\text{ ns} = 100\text{ ns}$.
+  * Periodo del ciclo completo ($N_{total\_sim} = 40$): $T_{ciclo\_sim} = 40 \cdot 10\text{ ns} = 400\text{ ns}$.
+
+---
+
+#### Tabla de Transición de Estados y Salidas
+
+| `counter` (FPGA) | `counter` (Testbench) | Estado Lógico | Salida `led[2:0]` | Canales Activos | Color Resultante |
+| :---: | :---: | :---: | :---: | :---: | :---: |
+| $0$ | $0$ | Estado 1 | `3'b001` | Canal Rojo (`led[0]`) | 🔴 Rojo |
+| $80\,000\,000$ | $10$ | Estado 2 | `3'b011` | Canal Rojo + Verde (`led[0]`, `led[1]`) | 🟡 Amarillo |
+| $160\,000\,000$ | $20$ | Estado 3 | `3'b010` | Canal Verde (`led[1]`) | 🟢 Verde |
+| $240\,000\,000$ | $30$ | Estado 4 | `3'b011` | Canal Rojo + Verde (`led[0]`, `led[1]`) | 🟡 Amarillo |
 
 
 ### 2.4 Funcionamiento del código
