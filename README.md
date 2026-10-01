@@ -119,7 +119,7 @@ if (counter == 0)
 
 #### Tabla de Transición de Estados y Mapeo de Colores
 
-El comportamiento del LED puede dividirse en cuatro intervalos principales. Inicialmente, el contador se encuentra en cero y se activa el color rojo. Después de 80\,000\,000 ciclos de reloj, la salida cambia a amarillo. Posteriormente, al alcanzar 160\,000\,000 ciclos, el LED cambia a verde. Finalmente, al llegar a 240\,000\,000 ciclos, vuelve a amarillo. Una vez completado este último intervalo, el contador alcanza el valor establecido para reinicio y la secuencia comienza nuevamente desde el color rojo.
+El comportamiento del LED puede dividirse en cuatro intervalos principales. Inicialmente, el contador se encuentra en cero y se activa el color rojo. Después de 80\,000\,000 ciclos de reloj, la salida cambia a amarillo. Posteriormente, al alcanzar 160\,000\,000 ciclos, el LED cambia a verde. Finalmente, al llegar a 240\,000\,000 ciclos, vuelve a amarillo. Una vez completado este último intervalo, cuando el contador alcance los 320\,000\,000 ciclos, la secuencia se reinicia y comienza nuevamente desde el color rojo.
 
 | Valor de `counter` | Intervalo de Ciclos | Estado Lógico | Salida `led[2:0]` | Canales Activos | Color Resultante |
 | :---: | :---: | :---: | :---: | :---: | :---: |
