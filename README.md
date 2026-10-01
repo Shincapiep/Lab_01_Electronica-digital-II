@@ -9,7 +9,7 @@
 * **Eduardo Felipe Camacho Lara**
 * **Gabriel Alberto Rodríguez Rincón**
 
-\---
+---
 
 ## Contenido
 
@@ -18,7 +18,7 @@
 3. [Test funcional personalizado: comparador de claves](#3-test-funcional-personalizado-comparador-de-claves)
 4. [Conclusiones](#4-conclusiones)
 
-\---
+---
 
 ## 1\. Instalación y configuración del proyecto
 
@@ -32,7 +32,7 @@ El proyecto se creó como **RTL Project** con los siguientes parámetros:
 |Fuentes|`semaforo.v` / `comparador\_claves.v`|
 |Constraints|`Zybo-Z7.xdc` (Digilent)|
 
-\---
+---
 
 ## 2\. Smoke Test: Semáforo en LED RGB
 
@@ -81,7 +81,7 @@ En la siguiente imágen se observa el resultado de la simulación en gtkwave:
 
 Como se puede ver en la imagen anterior, el comportamiento de la prueba fue el esperado, ya que la secuencia de salidas en el registro `led[2:0]` concuerda exactamente con los estados temporales programados para el semáforo.
 
-* **Comportamiento Estado Rojo (`led = 3'b001`):** Su valor está activo desde los 0 ns hasta los 105 ns, manteniéndose durante los primeros 10 ciclos del reloj.
+* **Comportamiento Estado Rojo (`led = 3'b001`):** Su valor está activo desde los 5 ns hasta los 105 ns, manteniéndose durante los primeros 10 ciclos del reloj.
 * **Comportamiento Estado Amarillo (`led = 3'b011`):** Su valor conmuta a los 105 ns y permanece activo hasta los 205 ns.
 * **Comportamiento Estado Verde (`led = 3'b010`):** Su valor se activa en el intervalo de 205 ns a 305 ns.
 * **Comportamiento Retorno a Amarillo (`led = 3'b011`):** Conmuta nuevamente a los 305 ns y se mantiene hasta los 405 ns.
@@ -91,68 +91,45 @@ Como se puede ver en la imagen anterior, el comportamiento de la prueba fue el e
 
 ### 2.4 Funcionamiento y Análisis del Código
 
-El módulo `Smoke_Test` recibe una entrada de reloj `clk` y controla una salida de 3 bits `led[2:0]` conectada a los canales del LED RGB LD6 de la tarjeta Zybo Z7. El diseño utiliza una arquitectura secuencial basada en dos bloques síncronos `always @(posedge clk)`:
+El módulo `Smoke_Test_FPGA` implementa el control secuencial de un LED RGB mediante una señal de reloj `clk`. El módulo recibe como entrada la señal de reloj de la FPGA y genera una salida de 3 bits `led[2:0]` conectada a los canales del LED RGB LD6 de la tarjeta Zybo Z7. El funcionamiento del diseño se basa en una arquitectura secuencial implementada mediante dos bloques `always @(posedge clk)`, los cuales se ejecutan en cada flanco ascendente de la señal de reloj:
 
-1. **Contador Principal:** Incrementa la variable `counter` en cada flanco de subida del reloj. Cuando el contador alcanza el límite establecido ($N_{total}$), se reinicia a $0$.
-2. **Máquina de Estados de Selección de Color:** Evalúa el valor de `counter` y actualiza el registro `led[2:0]`. Al ser asignaciones no bloqueantes (`<=`), el registro mantiene su estado hasta que el contador alcance el siguiente umbral.
+1. **Contador Principal:** El primer bloque corresponde al contador principal, cuya función es manejar los tiempos para determinar el momento en que debe cambiar el color del LED. La variable `counter` se inicializa en cero y se incrementa en una unidad en cada ciclo de reloj. Cuando el contador alcanza el valor de $320\,000\,000$, se reinicia a cero, permitiendo que la secuencia de colores se repita continuamente. Esto ocurre en el fragmento:
+```bash
+if (counter>=320000000) //Contador adaptado para la FPGA
+        counter <= 0;
+    else
+        counter <= counter + 1;   
+    end
+```
 
-#### Temporización y Cálculos de Frecuencia
-
-La tarjeta Zybo Z7-20 provee un reloj del sistema de $125\text{ MHz}$ en el pin `K17`:
-
-$$T_{clk} = \frac{1}{f_{clk}} = \frac{1}{125\text{ MHz}} = 8\text{ ns}$$
-
-Las ecuaciones de temporización que rigen la duración de cada estado ($t_{estado}$) y del ciclo completo ($T_{ciclo}$) son:
-
-$$t_{estado} = N_{estado} \cdot T_{clk}$$
-
-$$T_{ciclo} = N_{total} \cdot T_{clk}$$
-
-* **Comportamiento en Hardware Real (FPGA):**
-  * Umbral por estado: $N_{estado} = 80\,000\,000$ ciclos.
-  * Duración por color: $t_{estado} = 80\,000\,000 \cdot 8\text{ ns} = 0.64\text{ s}$.
-  * Periodo del ciclo completo ($N_{total} = 320\,000\,000$): $T_{ciclo} = 320\,000\,000 \cdot 8\text{ ns} = 2.56\text{ s}$.
-
-* **Comportamiento en Simulación (Testbench a $100\text{ MHz}$ / $T_{clk} = 10\text{ ns}$):**
-  * Umbral por estado: $N_{estado\_sim} = 10$ ciclos.
-  * Duración por color: $t_{estado\_sim} = 10 \cdot 10\text{ ns} = 100\text{ ns}$.
-  * Periodo del ciclo completo ($N_{total\_sim} = 40$): $T_{ciclo\_sim} = 40 \cdot 10\text{ ns} = 400\text{ ns}$.
+2. **Máquina de Estados de Selección de Color:** El segundo bloque implementa la selección de los colores del LED RGB. En este bloque se evalúa continuamente el valor del contador `counter` y, de acuerdo con los intervalos previamente establecidos, se actualiza el registro `led[2:0]`. Al utilizar asignaciones no bloqueantes (`<=`), la salida conserva el valor asignado durante el intervalo correspondiente, hasta que el contador alcance el siguiente límite y se produzca una nueva actualización. Esto ocurre en la siguiente parte del código:
+```bash
+if (counter == 0)
+        led <= 3'b001;//Rojo
+    else if (counter == 80000000)
+        led <= 3'b011;//Amarillo
+    else if (counter == 160000000)
+        led <= 3'b010;//Verde
+    else if (counter == 240000000)
+        led <= 3'b011;//Amarillo
+    end
+```
 
 ---
 
-#### Tabla de Transición de Estados y Salidas
+#### Tabla de Transición de Estados y Mapeo de Colores
 
-| `counter` (FPGA) | `counter` (Testbench) | Estado Lógico | Salida `led[2:0]` | Canales Activos | Color Resultante |
+El comportamiento del LED puede dividirse en cuatro intervalos principales. Inicialmente, el contador se encuentra en cero y se activa el color rojo. Después de 80\,000\,000 ciclos de reloj, la salida cambia a amarillo. Posteriormente, al alcanzar 160\,000\,000 ciclos, el LED cambia a verde. Finalmente, al llegar a 240\,000\,000 ciclos, vuelve a amarillo. Una vez completado este último intervalo, el contador alcanza el valor establecido para reinicio y la secuencia comienza nuevamente desde el color rojo.
+
+| Valor de `counter` | Intervalo de Ciclos | Estado Lógico | Salida `led[2:0]` | Canales Activos | Color Resultante |
 | :---: | :---: | :---: | :---: | :---: | :---: |
-| $0$ | $0$ | Estado 1 | `3'b001` | Canal Rojo (`led[0]`) | 🔴 Rojo |
-| $80\,000\,000$ | $10$ | Estado 2 | `3'b011` | Canal Rojo + Verde (`led[0]`, `led[1]`) | 🟡 Amarillo |
-| $160\,000\,000$ | $20$ | Estado 3 | `3'b010` | Canal Verde (`led[1]`) | 🟢 Verde |
-| $240\,000\,000$ | $30$ | Estado 4 | `3'b011` | Canal Rojo + Verde (`led[0]`, `led[1]`) | 🟡 Amarillo |
+| $0$ | $0 \le counter < 80 \times 10^6$ | Estado 1 | `3'b001` | Canal Rojo (`led[0]`) | 🔴 Rojo |
+| $80\,000\,000$ | $80 \times 10^6 \le counter < 160 \times 10^6$ | Estado 2 | `3'b011` | Rojo + Verde (`led[0]`, `led[1]`) | 🟡 Amarillo |
+| $160\,000\,000$ | $160 \times 10^6 \le counter < 240 \times 10^6$ | Estado 3 | `3'b010` | Canal Verde (`led[1]`) | 🟢 Verde |
+| $240\,000\,000$ | $240 \times 10^6 \le counter < 320 \times 10^6$ | Estado 4 | `3'b011` | Rojo + Verde (`led[0]`, `led[1]`) | 🟡 Amarillo |
 
+**Nota de Comparación:** Mientras que en `Smoke_Test_FPGA.v` cada color dura 80\,000\,000 ciclos de reloj, para ser perfectamente apreciable en la FPGA, en la versión de simulación `Smoke_Test.v` cada estado dura únicamente 10 ciclos de reloj, lo cual permite verificar la transición correcta de estados en GTKWave sin sobrecargar el tiempo de cómputo.
 
-### 2.4 Funcionamiento del código
-
-El módulo `Semaforo` tiene una entrada de reloj `clk` y una salida `led\[2:0]` que controla los tres canales del LED RGB LD6. Está compuesto por dos bloques síncronos:
-
-1. **Contador:** incrementa `counter` en cada flanco de subida de `clk` y lo reinicia al llegar a 320 000 000.
-2. **Selector de color:** cuando `counter` alcanza 0, 80e6, 160e6 y 240e6, cambia el valor de `led`. Entre esos instantes el registro conserva su valor, por lo que el color se mantiene.
-
-La duración de cada estado se definió como el parámetro `N\_ESTADO` (80e6 por defecto), del cual se derivan los demás umbrales (`N\_TOTAL = 4\*N\_ESTADO`). En síntesis se usa el valor por defecto; en simulación se reduce para no simular 320 millones de ciclos.
-
-**Temporización** (reloj de 125 MHz en el pin K17):
-
-```
-T\_clk    = 1 / f\_clk        = 1 / 125e6 Hz  = 8 ns
-t\_estado = N\_estado \* T\_clk = 80e6 \* 8 ns   = 0.64 s
-T\_ciclo  = N\_total  \* T\_clk = 320e6 \* 8 ns  = 2.56 s
-```
-
-|`counter`|Estado|`led = {G,B,R}`|Canal encendido|
-|-|-|-|-|
-|0|Rojo|`3'b001`|R|
-|80 000 000|Azul|`3'b010`|B|
-|160 000 000|Verde|`3'b100`|G|
-|240 000 000|Azul|`3'b010`|B|
 
 
 ### 2.5 Mapeo de pines (`.xdc`)
