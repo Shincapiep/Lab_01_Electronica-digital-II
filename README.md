@@ -123,10 +123,10 @@ El comportamiento del LED puede dividirse en cuatro intervalos principales. Inic
 
 | Valor de `counter` | Intervalo de Ciclos | Estado Lógico | Salida `led[2:0]` | Canales Activos | Color Resultante |
 | :---: | :---: | :---: | :---: | :---: | :---: |
-| 0 | 0 \le `counter` < 80 \times 10^6 | Estado 1 | `3'b001` | Canal Rojo (`led[0]`) | 🔴 Rojo |
-| 80\,000\,000 | 80 \times 10^6 \le `counter` < 160 \times 10^6 | Estado 2 | `3'b011` | Rojo + Verde (`led[0]`, `led[1]`) | 🟡 Amarillo |
-| 160\,000\,000 | 160 \times 10^6 \le `counter` < 240 \times 10^6 | Estado 3 | `3'b010` | Canal Verde (`led[1]`) | 🟢 Verde |
-| 240\,000\,000 | 240 \times 10^6 \le `counter` < 320 \times 10^6 | Estado 4 | `3'b011` | Rojo + Verde (`led[0]`, `led[1]`) | 🟡 Amarillo |
+| 0 | 0 < `counter` < 80 x 10^6 | Estado 1 | `3'b001` | Canal Rojo (`led[0]`) | 🔴 Rojo |
+| 80\,000\,000 | 80 x 10^6 < `counter` < 160 x 10^6 | Estado 2 | `3'b011` | Rojo + Verde (`led[0]`, `led[1]`) | 🟡 Amarillo |
+| 160\,000\,000 | 160 x 10^6 < `counter` < 240 x 10^6 | Estado 3 | `3'b010` | Canal Verde (`led[1]`) | 🟢 Verde |
+| 240\,000\,000 | 240 x 10^6 < `counter` < 320 x 10^6 | Estado 4 | `3'b011` | Rojo + Verde (`led[0]`, `led[1]`) | 🟡 Amarillo |
 
 **Nota de Comparación:** Mientras que en `Smoke_Test_FPGA.v` cada color dura 80\,000\,000 ciclos de reloj, para ser perfectamente apreciable en la FPGA, en la versión de simulación `Smoke_Test.v` cada estado dura únicamente 10 ciclos de reloj, lo cual permite verificar la transición correcta de estados en GTKWave sin sobrecargar el tiempo de cómputo.
 
