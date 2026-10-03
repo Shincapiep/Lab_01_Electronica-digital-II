@@ -1,3 +1,7 @@
+
+
+https://github.com/user-attachments/assets/6e36e181-1fc6-491e-8841-b5e94c48be67
+
 # Laboratorio 01: FPGA (Zybo Z7), Vivado/Vitis y Validación de Hardware
 
 * **Asignatura:** Electrónica Digital II
@@ -172,6 +176,12 @@ set_property -dict { PACKAGE_PIN M17   IOSTANDARD LVCMOS33 } [get_ports { led[2]
 **Restricción Temporal:** Se utilizó `create\_clock` para informar a la herramienta que el reloj tiene un periodo de 8 ns, que es el valor que usa el análisis de tiempos durante la implementación.
 
 ### 2.6 Evidencia en hardware
+
+
+
+https://github.com/user-attachments/assets/3a1d6b7b-a830-423f-acc0-ff0b0b93ff32
+
+
 
 https://github.com/user-attachments/assets/e99ffdbc-6585-4a58-9e17-00986aa4bfc6
 
