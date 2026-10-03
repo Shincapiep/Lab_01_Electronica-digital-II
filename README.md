@@ -129,8 +129,6 @@ if (counter == 0)
 
 **Nota de Comparación:** Mientras que en `Smoke_Test_FPGA.v` cada color dura 80\,000\,000 ciclos de reloj, para ser perfectamente apreciable en la FPGA, en la versión de simulación `Smoke_Test.v` cada estado dura únicamente 10 ciclos de reloj para verificar la transición correcta de estados en GTKWave sin sobrecargar el tiempo de cómputo.
 
-
-
 ### 2.5 Mapeo de pines (`.xdc`)
 
 Para la implementación en la tarjeta Zybo Z7, se utilizó el archivo `Pines_Smoke_Test.xdc`, habilitando únicamente las señales del reloj del sistema y los tres canales del LED RGB LD6.
@@ -174,13 +172,14 @@ set_property -dict { PACKAGE_PIN M17   IOSTANDARD LVCMOS33 } [get_ports { led[2]
 
 ### 2.6 Evidencia en hardware
 
+#### Flujo de Implementación en Vivado
+1. **Síntesis e Implementación:** Se importaron los archivos `Smoke_Test_FPGA.v` y `Pines_Smoke_Test.xdc` en Xilinx Vivado. Se ejecutaron los procesos de síntesis e implementación sin errores de temporización ni conflictos de asignación de I/O.
+2. **Generación del Bitstream:** Se generó exitosamente el archivo ejecutable de hardware (`.bit`).
+3. **Programación JTAG:** Se conectó la tarjeta Zybo Z7-20 a la estación de trabajo mediante el puerto Micro-USB. Luego se abrió el Hardware Manager de Vivado, se detectó la FPGA y se programó el dispositivo mediante la interfaz JTAG.
 
+A continuación, se muestra el video del correcto funcionamiento del Smoke Test:
 
 https://github.com/user-attachments/assets/3a1d6b7b-a830-423f-acc0-ff0b0b93ff32
-
-
-
-https://github.com/user-attachments/assets/e99ffdbc-6585-4a58-9e17-00986aa4bfc6
 
 Se programó el código base con los estados descomentados. Se observó la secuencia cíclica **rojo → azul → verde → azul**, con una duración aproximada de 0.64 s por estado, lo que confirma:
 
@@ -188,7 +187,9 @@ Se programó el código base con los estados descomentados. Se observó la secue
 * Que el reloj de 125 MHz está presente y el `create\_clock` es coherente con la temporización observada.
 * Que los tres canales del LED RGB responden y están asignados a pines válidos en el `.xdc`.
 
-### 2.8 Observaciones
+
+
+### 2.7 Observaciones
 
 En el código base, el segundo estado se comenta como "amarillo", pero se codifica como `3'b010`, que según el `.xdc` corresponde al canal azul (M17). Por eso la secuencia observada es rojo → azul → verde → azul. El LED RGB no tiene un canal amarillo propio: para obtenerlo habría que encender R y G a la vez (`3'b101`).
 
