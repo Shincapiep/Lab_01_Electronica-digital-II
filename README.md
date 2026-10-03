@@ -1,7 +1,4 @@
 
-
-https://github.com/user-attachments/assets/6e36e181-1fc6-491e-8841-b5e94c48be67
-
 # Laboratorio 01: FPGA (Zybo Z7), Vivado/Vitis y Validación de Hardware
 
 * **Asignatura:** Electrónica Digital II
