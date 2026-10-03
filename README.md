@@ -164,61 +164,14 @@ set_property -dict { PACKAGE_PIN M17   IOSTANDARD LVCMOS33 } [get_ports { led[2]
 | `led[1]` | F17 | Canal Verde (G) del LED RGB LD6 | 
 | `led[2]` | M17 | Canal Azul (B) del LED RGB LD6 | 
 
-`create\_clock` informa a la herramienta que el reloj tiene un periodo de 8 ns, que es el valor que usa el análisis de tiempos durante la implementación.
 
-### 2.6 Simulación (testbench)
+**Modificación y Renombrado de Pines:** Se descomentó la línea del pin `K17` correspondiente al reloj de 125 MHz de la FPGA y también los pines correspondientes a los tres colores del LED LD6 (`V16`, `F17`, `M17`) y se renombraron sus puertos en la instrucción `get_ports` de `led6_r`, `led6_g` y `led6_b` a `led[0]`, `led[1]` y `led[2]` respectivamente, logrando el enlace directo con el vector de salida `led[2:0]` del módulo `Smoke_Test_FPGA.v`.
 
-Antes de programar la tarjeta, el diseño se verificó con un testbench (`src/tb\_semaforo.v`):
+**Prevención de Conflictos de Puerto:** Se tuvo que dejar comentadas las entradas de los Leds monocromáticos de la tarjeta (`led[0]` a `led[3]`). Si se hubieran dejado activas, Vivado habría generado un error fatal de conflicto de nombres de puerto duplicados (Port Name Collision) durante la fase de síntesis. 
 
-|Aspecto|Valor en simulación|
-|-|-|
-|Reloj|125 MHz (periodo de 8 ns, igual al de la tarjeta)|
-|`N\_ESTADO`|10 ciclos (se sobrescribe con `#(.N\_ESTADO(10))`)|
-|Ciclos verificados|3 ciclos completos (13 transiciones)|
+**Restricción Temporal:** Se utilizó `create\_clock` para informar a la herramienta que el reloj tiene un periodo de 8 ns, que es el valor que usa el análisis de tiempos durante la implementación.
 
-En cada cambio de `led`, el testbench comprueba:
-
-1. **Color:** que coincida con la secuencia rojo → azul → verde → azul.
-2. **Duración:** que el estado anterior haya durado `N\_ESTADO \* T\_clk = 10 \* 8 ns = 80 ns`, o 88 ns en el caso del último azul (ver 2.2).
-
-Al final imprime `PASO` o `FALLO` con el número de errores, y tiene un *timeout* por si el LED nunca cambia.
-
-**Ejecución con Icarus Verilog y GTKWave**:
-
-```bash
-iverilog -g2005 -o sim tb\_semaforo.v semaforo.v
-vvp sim
-gtkwave tb\_semaforo.vcd
-```
-
-**Resultado:**
-
-```
-\[4.0 ns] OK: ROJO
-\[84.0 ns] OK: AZUL
-           duracion estado anterior = 80.0 ns
-\[164.0 ns] OK: VERDE
-           duracion estado anterior = 80.0 ns
-\[244.0 ns] OK: AZUL
-           duracion estado anterior = 80.0 ns
-\[332.0 ns] OK: ROJO
-           duracion estado anterior = 88.0 ns
-...
-SMOKE TEST (simulacion): PASO - 13 transiciones verificadas
-```
-
-**Formas de onda (GTKWave):**
-
-![Simulación del semáforo en GTKWave](rgb/gtk.png)
-
-* **Rojo (`001`)** desde el primer flanco (4 ns) hasta que `counter` llega a 10.
-* **Azul (`010`)** desde que `counter` pasa de 10 a 11, y **verde (`100`)** desde que pasa de 20 a 21.
-* **Retardo de un ciclo:** `led` es un registro; la condición `counter == N\_ESTADO` se evalúa en un flanco y el nuevo color aparece en ese mismo flanco, cuando `counter` ya vale 11. La duración de cada estado no cambia (10 ciclos = 80 ns).
-* **Valor inicial:** antes del primer flanco `led` vale `X` (en rojo en GTKWave) porque el registro no tiene valor inicial. En la FPGA arranca en 0, es decir, el LED apagado durante 8 ns.
-
-La secuencia simulada coincide con la observada en la tarjeta (sección 2.5).
-
-### 2.7 Evidencia en hardware
+### 2.6 Evidencia en hardware
 
 https://github.com/user-attachments/assets/e99ffdbc-6585-4a58-9e17-00986aa4bfc6
 
