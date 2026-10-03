@@ -117,9 +117,7 @@ if (counter == 0)
 
 ---
 
-#### Tabla de Transición de Estados y Mapeo de Colores
-
-El comportamiento del LED puede dividirse en cuatro intervalos principales. Inicialmente, el contador se encuentra en cero y se activa el color rojo. Después de 80\,000\,000 ciclos de reloj, la salida cambia a amarillo. Posteriormente, al alcanzar 160\,000\,000 ciclos, el LED cambia a verde. Finalmente, al llegar a 240\,000\,000 ciclos, vuelve a amarillo. Una vez completado este último intervalo, cuando el contador alcance los 320\,000\,000 ciclos, la secuencia se reinicia y comienza nuevamente desde el color rojo.
+3. **Tabla de Transición de Estados y Mapeo de Colores:** El comportamiento del LED puede dividirse en cuatro intervalos principales. Inicialmente, el contador se encuentra en cero y se activa el color rojo. Después de 80\,000\,000 ciclos de reloj, la salida cambia a amarillo. Posteriormente, al alcanzar 160\,000\,000 ciclos, el LED cambia a verde. Finalmente, al llegar a 240\,000\,000 ciclos, vuelve a amarillo. Una vez completado este último intervalo, cuando el contador alcance los 320\,000\,000 ciclos, la secuencia se reinicia y comienza nuevamente desde el color rojo. El comportamiento del código se resume en la próxima tabla:
 
 | Valor de `counter` | Intervalo de Ciclos | Estado Lógico | Salida `led[2:0]` | Canales Activos | Color Resultante |
 | :---: | :---: | :---: | :---: | :---: | :---: |
@@ -128,7 +126,7 @@ El comportamiento del LED puede dividirse en cuatro intervalos principales. Inic
 | 160\,000\,000 | 160 x 10^6 < `counter` < 240 x 10^6 | Estado 3 | `3'b010` | Canal Verde (`led[1]`) | 🟢 Verde |
 | 240\,000\,000 | 240 x 10^6 < `counter` < 320 x 10^6 | Estado 4 | `3'b011` | Rojo + Verde (`led[0]`, `led[1]`) | 🟡 Amarillo |
 
-**Nota de Comparación:** Mientras que en `Smoke_Test_FPGA.v` cada color dura 80\,000\,000 ciclos de reloj, para ser perfectamente apreciable en la FPGA, en la versión de simulación `Smoke_Test.v` cada estado dura únicamente 10 ciclos de reloj, lo cual permite verificar la transición correcta de estados en GTKWave sin sobrecargar el tiempo de cómputo.
+**Nota de Comparación:** Mientras que en `Smoke_Test_FPGA.v` cada color dura 80\,000\,000 ciclos de reloj, para ser perfectamente apreciable en la FPGA, en la versión de simulación `Smoke_Test.v` cada estado dura únicamente 10 ciclos de reloj para verificar la transición correcta de estados en GTKWave sin sobrecargar el tiempo de cómputo.
 
 
 
