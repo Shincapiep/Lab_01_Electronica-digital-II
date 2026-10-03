@@ -132,25 +132,37 @@ if (counter == 0)
 
 ### 2.5 Mapeo de pines (`.xdc`)
 
-Solo se habilitaron las líneas del reloj y del LED RGB LD6, que eran las únicas necesarias para esta implementación:
+Para la implementación en la tarjeta Zybo Z7, se utilizó el archivo `Pines_Smoke_Test.xdc`, habilitando únicamente las señales del reloj del sistema y los tres canales del LED RGB LD6.
 
 ```tcl
-## Reloj 125 MHz
-set\_property -dict { PACKAGE\_PIN K17 IOSTANDARD LVCMOS33 } \[get\_ports { clk }];
-create\_clock -add -name sys\_clk\_pin -period 8.00 -waveform {0 4} \[get\_ports { clk }];
+## Reloj del Sistema (125 MHz)
+set_property -dict { PACKAGE_PIN K17   IOSTANDARD LVCMOS33 } [get_ports { clk }]; # sysclk
+create_clock -add -name sys_clk_pin -period 8.00 -waveform {0 4} [get_ports { clk }];
 
-## LED RGB LD6
-set\_property -dict { PACKAGE\_PIN V16 IOSTANDARD LVCMOS33 } \[get\_ports { led\[0] }]; # led6\_r
-set\_property -dict { PACKAGE\_PIN M17 IOSTANDARD LVCMOS33 } \[get\_ports { led\[1] }]; # led6\_b
-set\_property -dict { PACKAGE\_PIN F17 IOSTANDARD LVCMOS33 } \[get\_ports { led\[2] }]; # led6\_g
+#LEDs (Comentados para no hacer conflicto)
+#set_property -dict { PACKAGE_PIN M14   IOSTANDARD LVCMOS33 } [get_ports { led[0] }]; #IO_L23P_T3_35 Sch=led[0]
+#set_property -dict { PACKAGE_PIN M15   IOSTANDARD LVCMOS33 } [get_ports { led[1] }]; #IO_L23N_T3_35 Sch=led[1]
+#set_property -dict { PACKAGE_PIN G14   IOSTANDARD LVCMOS33 } [get_ports { led[2] }]; #IO_0_35 Sch=led[2]
+#set_property -dict { PACKAGE_PIN D18   IOSTANDARD LVCMOS33 } [get_ports { led[3] }]; #IO_L3N_T0_DQS_AD1N_35 Sch=led[3]
+
+##RGB LED 5 (Zybo Z7-20 only) 
+#set_property -dict { PACKAGE_PIN Y11   IOSTANDARD LVCMOS33 } [get_ports { led5_r }]; #IO_L18N_T2_13 Sch=led5_r
+#set_property -dict { PACKAGE_PIN T5    IOSTANDARD LVCMOS33 } [get_ports { led5_g }]; #IO_L19P_T3_13 Sch=led5_g
+#set_property -dict { PACKAGE_PIN Y12   IOSTANDARD LVCMOS33 } [get_ports { led5_b }]; #IO_L20P_T3_13 Sch=led5_b
+
+##RGB LED 6 (Descomentado y renombrado para Smoke_Test.v)
+set_property -dict { PACKAGE_PIN V16   IOSTANDARD LVCMOS33 } [get_ports { led[0] }]; # Canal Rojo  (Rojo)
+set_property -dict { PACKAGE_PIN F17   IOSTANDARD LVCMOS33 } [get_ports { led[1] }]; # Canal Verde (Verde)
+set_property -dict { PACKAGE_PIN M17   IOSTANDARD LVCMOS33 } [get_ports { led[2] }]; # Canal Azul  (Azul)
+
 ```
 
-|Señal HDL|Pin|Canal|
-|-|-|-|
-|`clk`|K17|Reloj del sistema (125 MHz)|
-|`led\[0]`|V16|Rojo|
-|`led\[1]`|M17|Azul|
-|`led\[2]`|F17|Verde|
+| Señal HDL | Pin FPGA | Canal |
+| :---: | :---: | :---: | 
+| `clk` | K17 | Reloj del sistema (125 MHz) | 
+| `led[0]` | V16 | Canal Rojo (R) del LED RGB LD6 |
+| `led[1]` | F17 | Canal Verde (G) del LED RGB LD6 | 
+| `led[2]` | M17 | Canal Azul (B) del LED RGB LD6 | 
 
 `create\_clock` informa a la herramienta que el reloj tiene un periodo de 8 ns, que es el valor que usa el análisis de tiempos durante la implementación.
 
