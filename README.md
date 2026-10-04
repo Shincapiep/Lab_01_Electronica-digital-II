@@ -479,38 +479,7 @@ La simulación obtenida en GTKWave confirma el correcto funcionamiento combinaci
 
 ### 3.7 Evidencia en hardware
 
-### 3.7 Evidencia de Funcionamiento en Hardware (Implementación en FPGA)
-
-Posterior a la sintesis, implementación y generación del archivo de mapa de bits (*Bitstream* `.bit`) en Xilinx Vivado, se programó la FPGA de la tarjeta Zybo Z7 para validar físicamente el comportamiento del circuito combinacional.
-
----
-
-#### 3.7.1 Montaje del Prototipo Físico
-
-El montaje experimental se compone de los siguientes elementos:
-
-1. **Tarjeta Zybo Z7:** Alimentada y programada mediante conexión Micro-USB JTAG.
-2. **Entradas Integradas:** Uso de los 4 switches `SW[3:0]` para el operando $A$ y los 4 pulsadores `BTN[3:0]` para el operando $B$.
-3. **Módulo de Extensión Protoboard:** Conectado al puerto **Pmod JC** de la PL (pines `V15` y `W15`), implementando los pulsadores externos `btn[4]` (Máscara XOR) y `btn[5]` (Selector de modo Aritmético) con sus respectivas resistencias de Pull-Down de $10\text{ k}\Omega$.
-4. **Indicadores de Salida:** Los 4 LEDs verdes integrados `LD[3:0]` representan el resultado aritmético (`led[3:0]`), mientras que el LED RGB tri-color `LD6` despliega la respuesta de las reducciones lógicas (`led_rgb[2:0]`).
-
----
-
-#### 3.7.2 Tabla de Comprobación en Hardware
-
-La siguiente tabla resume la verificación directa sobre la tarjeta de desarrollo para los cinco casos de prueba evaluados previamente en simulación[cite: 4]:
-
-| Caso | Switches `SW[3:0]` ($A$) | Pulsadores `BTN[3:0]` | Pmod `btn[4]` (Máscara) | Pmod `btn[5]` (Modo) | Estado de LEDs Verdes `LD3..LD0` | Estado del LED RGB `LD6` | Color Visual Observado |
-| :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| **1** | `1010` (10)[cite: 4] | `0011` (3)[cite: 4] | Presionado ($0$)[cite: 4] | Presionado ($0$)[cite: 4] | `0111` ($7_{10}$)[cite: 4] | `111` (B, G, R activos) | ⚪ **Blanco** |
-| **2** | `1010` (10)[cite: 4] | `0011` (3)[cite: 4] | **Pulsado ($1$)**[cite: 4] | Presionado ($0$)[cite: 4] | `1110` ($14_{10} / -2$)[cite: 4] | `111` (B, G, R activos) | ⚪ **Blanco** |
-| **3** | `0101` (5)[cite: 4] | `0011` (3)[cite: 4] | Presionado ($0$)[cite: 4] | **Pulsado ($1$)**[cite: 4] | `1000` ($8_{10}$)[cite: 4] | `111` (B, G, R activos) | ⚪ **Blanco** |
-| **4** | `1100` (12)[cite: 4] | `1100` (12)[cite: 4] | Presionado ($0$)[cite: 4] | Presionado ($0$)[cite: 4] | `0000` ($0_{10}$)[cite: 4] | `011` (G, R activos) | 🟡 **Amarillo** |
-| **5** | `1010` (10)[cite: 4] | `0101` (5)[cite: 4] | Presionado ($0$)[cite: 4] | Presionado ($0$)[cite: 4] | `0101` ($5_{10}$)[cite: 4] | `110` (B, G activos) | 🩵 **Cyan** |
-
----
-
-#### 3.7.3 Registro Fotográfico y Validación de Casos
+Posterior a la síntesis, implementación y generación del archivo del Bitstream, se programó la FPGA de la tarjeta Zybo Z7 para validar físicamente el comportamiento del circuito combinacional. La tabla que resume todos los casos analizados en la FPGA se muestran en el apartado 3.3 donde se habla del funcionamiento del código. Los videos del funcionamiento se muestran a continuación:
 
 ##### Resta:
 
