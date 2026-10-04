@@ -234,8 +234,15 @@ Como se puede ver, la ASM del consta de un único bloque de estado (S0), del cua
 El módulo `comparador_claves` implementa una ALU de 4 bits puramente combinacional. Su propósito es procesar dos operandos de entrada (`operando_a` y `operando_b`), aplicar transformaciones opcionales y calcular tanto operaciones aritméticas como indicadores lógicos de coincidencia. El procesamiento de datos en el módulo se puede dividir en 5 bloques funcionales consecutivos:
 
 1. **Captura del Operando A:**
+   Toma directamente los 4 switches de la tarjeta (`sw[3:0]`) como el valor de la clave principal (`operando_a`).
    ```verilog
    wire [3:0] operando_a = sw[3:0];
+   ```
+2. **Acondicionamiento y Máscara XOR para el Operando B:**
+   Aquí se utiliza un multiplexor condicional controlado por el pulsador `btn[4]` para definir si se invierte el valor de los bits del `operando_b` o si se mantienen en su valor original. Estos procesos se definen si:
+   * btn[4] = 0 (Bypass): $operando\_b = btn[3:0]$. 
+   ```verilog
+   wire [3:0] operando_b = btn[4] ? (btn[3:0] ^ 4'b1111) : btn[3:0];
    ```
 
 
