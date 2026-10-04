@@ -241,7 +241,7 @@ El módulo `comparador_claves` implementa una ALU de 4 bits puramente combinacio
 2. **Acondicionamiento y Máscara XOR para el Operando B:**
    Aquí se utiliza un multiplexor condicional controlado por el pulsador `btn[4]` para definir si se invierte el valor de los bits del `operando_b` o si se mantienen en su valor original. Estos procesos se definen si:
    * `btn[4] = 0` (Pass): `operando_b` = `btn[3:0]`.
-   * `btn[4] = 1` (Máscara Activa): Invierte bit a bit la clave ingresada ($btn[3:0] \oplus 1111_2$), lo que equivale a calcular su complemento a 1.
+   * `btn[4] = 1` (Máscara Activa): Invierte bit a bit la clave ingresada ($`btn[3:0]` \oplus 1111_2$), lo que equivale a calcular su complemento a 1.
    ```verilog
    wire [3:0] operando_b = btn[4] ? (btn[3:0] ^ 4'b1111) : btn[3:0];
    ```
