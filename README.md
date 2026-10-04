@@ -20,7 +20,15 @@
 
 ---
 
-## 1. Instalación y configuración del proyecto
+## 1. Introducción
+
+Esta práctica de laboratorio aborda la implementación y validación de sistemas digitales sobre la plataforma reconfigurable Zybo Z7. El desarrollo experimental se estructuró en dos etapas principales: primero, la ejecución de una prueba preliminar (smoke test) consistente en el control de un semáforo para verificar el entorno de desarrollo; y segundo, la implementación de un circuito combinacional de prueba funcional que actúa como una ALU de 4 bits, procesando dos operandos mediante operaciones aritméticas y lógicas. El comportamiento del sistema fue descrito en Lenguaje de Descripción de Hardware (Verilog HDL), mientras que la asignación entre las señales del modelo y los recursos físicos de la FPGA se definió formalmente mediante archivos de restricciones de diseño (`.xdc`).
+
+Para la captura de datos en el test funcional combinacional, la interfaz de entrada utiliza los cuatro switches integrados (`sw[3:0]`) y cuatro pulsadores locales (`btn[3:0]`), complementados por dos pulsadores externos acondicionados en protoboard con resistencias de pull-down para extender el bus de control. Los resultados del procesamiento se despliegan visualmente a través de cuatro LEDs verdes integrados (`led[3:0]`) para las operaciones aritméticas y el LED RGB tri-color (`LD6`) para las reducciones lógicas unarias. Cada circuito fue sintetizado, implementado y transferido a la tarjeta mediante la interfaz JTAG utilizando sus respectivos archivos de mapeo de bits (bitstream), consolidando la comprobación física en la sección de evidencias de montaje y registro audiovisual.
+
+---
+
+## 2. Instalación y configuración del proyecto
 
 Se instalaron Vivado y Vitis 2025.2 mediante el *AMD Unified Installer* y se activó la licencia **Vivado Basic Tier (Node-Locked)**.
 
@@ -34,9 +42,9 @@ El proyecto se creó como **RTL Project** con los siguientes parámetros:
 
 ---
 
-## 2. Smoke Test: Semáforo en LED RGB
+## 3. Smoke Test: Semáforo en LED RGB
 
-### 2.1 Objetivo Del Ejercicio
+### 3.1 Objetivo Del Ejercicio
 
 * Validar la correcta instalación y funcionamiento del entorno de desarrollo: Visual Studio Code, Icarus Verilog (`iverilog`) y GTKWave.
 * Compilar y simular el módulo de control secuencial en Verilog (`Smoke_Test.v`) para confirmar la generación del archivo `.vcd`.
@@ -45,7 +53,7 @@ El proyecto se creó como **RTL Project** con los siguientes parámetros:
 
 ---
 
-### 2.2 Descarga del Módulo Secuencial y Creación del Testbench:
+### 3.2 Descarga del Módulo Secuencial y Creación del Testbench:
 
 Se descargó el archivo `Smoke_Test.v` y posteriormente se creó el archivo `tb_Smoke_Test.v` en Visual Studio Code. La función de cada uno es la siguiente:
 
@@ -74,7 +82,7 @@ gtkwave tb_Smoke_Test.vcd
 
 ---
 
-### 2.3 Simulación Virtual en GTKwave
+### 3.3 Simulación Virtual en GTKwave
 
 En la siguiente imágen se observa el resultado de la simulación en gtkwave:
 
@@ -90,7 +98,7 @@ Como se puede ver en la imagen anterior, el comportamiento de la prueba fue el e
 
 ---
 
-### 2.4 Funcionamiento y Análisis del Código
+### 3.4 Funcionamiento y Análisis del Código
 
 El módulo `Smoke_Test_FPGA` implementa el control secuencial de un LED RGB mediante una señal de reloj `clk`. El módulo recibe como entrada la señal de reloj de la FPGA y genera una salida de 3 bits `led[2:0]` conectada a los canales del LED RGB LD6 de la tarjeta Zybo Z7. El funcionamiento del diseño se basa en una arquitectura secuencial implementada mediante dos bloques `always @(posedge clk)`, los cuales se ejecutan en cada flanco ascendente de la señal de reloj:
 
@@ -129,7 +137,7 @@ if (counter == 0)
 
 ---
 
-### 2.5 Mapeo de pines (`.xdc`)
+### 3.5 Mapeo de pines (`.xdc`)
 
 Para la implementación en la tarjeta Zybo Z7, se utilizó el archivo `Pines_Smoke_Test.xdc`, habilitando únicamente las señales del reloj del sistema y los tres canales del LED RGB LD6.
 
@@ -171,7 +179,7 @@ set_property -dict { PACKAGE_PIN M17   IOSTANDARD LVCMOS33 } [get_ports { led[2]
 
 ---
 
-### 2.6 Evidencia en hardware
+### 3.6 Evidencia en hardware
 
 Para poder implementar el smoke test en la FPGA y demostrar el correcto funcionamiento de todos los procesos y archivos mostrados hasta el momento, fue necesario seguir los siguientes pasos:
 1. **Síntesis e Implementación:** Se importaron los archivos `Smoke_Test_FPGA.v` y `Pines_Smoke_Test.xdc` en Xilinx Vivado. Se ejecutaron los procesos de síntesis e implementación sin errores de temporización ni conflictos de asignación de I/O.
@@ -191,7 +199,7 @@ Una vez cargado el bitstream en la FPGA, el LED RGB comenzó la secuencia cícli
 * **Reinicio de ciclo:** Transcurridos todos los estados, la secuencia reinicia de forma continua en Estado Rojo.
 ---
 
-### 2.7 Conclusiones
+### 3.7 Conclusiones
 
 * El sistema demostró un comportamiento estable en todos los estados, respondiendo correctamente dentro de los parámetros esperados para la prueba inicial.
 * Los Leds rojo, amarillo y verde se encendieron debido a que en el código se asignó explícitamente patrones de bits específicos para prender dichos colores en cada umbral del contador. Como se puede ver de esos patrones (`3'b001`, `3'b011`, `3'b010`), el bit más significativo es el led azul, el segundo bit más significativo es el verde y el bit menos significativo es el rojo.
@@ -199,9 +207,9 @@ Una vez cargado el bitstream en la FPGA, el LED RGB comenzó la secuencia cícli
 
 ---
 
-## 3. Test funcional personalizado: Comparador de claves
+## 4. Test funcional personalizado: Comparador de claves
 
-### 3.1 Objetivo del Ejercicio
+### 4.1 Objetivo del Ejercicio
 
 * Diseñar e implementar un módulo combinacional en Verilog (`comparador_claves.v`) que procese la interacción entre una clave principal (operando A) y una clave ingresada (operando B).
 * Implementar una máscara de seguridad XOR de 4 bits para invertir el operando B mediante un pulsador de control (`btn[4]`).
@@ -211,7 +219,7 @@ Una vez cargado el bitstream en la FPGA, el LED RGB comenzó la secuencia cícli
 
 ---
 
-### 3.2 Lógica del Ejercicio
+### 4.2 Lógica del Ejercicio
 
 El módulo `comparador_claves` constituye un circuito puramente combinacional, por lo que no tiene una Máquina de Estados Finitos (FSM). Esto se justifica por las siguientes razones:
 * **Ausencia de señal de reloj (`clk`):** Las FSMs son sistemas secuenciales síncronos que requieren una señal de reloj para marcar la transición entre estados. El módulo opera sin señal de reloj.
@@ -235,7 +243,7 @@ Como se puede ver, la ASM del consta de un único bloque de estado (S0), del cua
 
 ---
 
-### 3.3 Funcionamiento y Análisis del Código:
+### 4.3 Funcionamiento y Análisis del Código:
 
 El módulo `comparador_claves` implementa una ALU de 4 bits puramente combinacional. Su propósito es procesar dos operandos de entrada (`operando_a` y `operando_b`), aplicar transformaciones opcionales y calcular tanto operaciones aritméticas como indicadores lógicos de coincidencia. El procesamiento de datos en el módulo se puede dividir en 5 bloques funcionales consecutivos:
 
@@ -296,7 +304,7 @@ El funcionamiento de algunos casos se muestran en la siguiente tabla:
 
 ---
 
-### 3.4 Mapeo de Pines (`.xdc`):
+### 4.4 Mapeo de Pines (`.xdc`):
 
 Para la implementación en la tarjeta Zybo Z7, se elaboró el archivo `Pines_Comparador_Claves`, mapeando las 10 entradas que salen entre switches y botones y las salidas de leds y led_rgb con los periféricos físicos integrados y una extensión externa en puerto Pmod.
 
@@ -359,13 +367,13 @@ La tabla que se presenta a continuación resume el mapeo de pines realizado en `
 
 ---
 
-### 3.5 Justificación Hardware: Uso de Pulsadores Externos en Puerto Pmod JC
+### 4.5 Justificación Hardware: Uso de Pulsadores Externos en Puerto Pmod JC
 
 Para el funcionamiento del comparador de claves se requerían 6 señales de entrada definidas mediante pulsadores (`btn[5:0]`), cuatro bits para la clave ingresada (`btn[3:0]`), un bit para la máscara XOR (`btn[4]`) y un bit para el selector de modo de la ALU (`btn[5]`).
 
 A pesar de que la tarjeta Zybo Z7 dispone físicamente de seis pulsadores integrados, fue indispensable añadir dos pulsadores externos mediante el puerto Pmod JC, debido a la arquitectura interna del chip Zynq-7000.
 
-#### 3.5.1 Arquitectura del SoC Zynq-7000: PS vs. PL
+#### 4.5.1 Arquitectura del SoC Zynq-7000: PS vs. PL
 
 El SoC Zynq-7000 de Xilinx/AMD integra dos bloques conceptuales y físicos independientes dentro del mismo encapsulado:
 
@@ -374,7 +382,7 @@ El SoC Zynq-7000 de Xilinx/AMD integra dos bloques conceptuales y físicos indep
 | PS (*Processing System*) | Procesador ARM Cortex-A9 y sus periféricos integrados (UART, USB, Ethernet, controladores de memoria y GPIOs de sistema). | Software (C/C++) en el entorno Vitis. | Pines MIO (Sin acceso directo desde lógica HDL)|
 | PL (*Programmable Logic*) | Matriz de Lógica Programable equivalente a una FPGA Artix-7. | Lenguajes HDL (Verilog/VHDL) y archivos `.xdc` en Vivado. | Pines de la PL (Totalmente mapeables mediante la directiva `PACKAGE_PIN`) |
 
-#### 3.5.2 Limitación Física de los Pulsadores BTN4 y BTN5
+#### 4.5.2 Limitación Física de los Pulsadores BTN4 y BTN5
 
 Los pulsadores de la tarjeta Zybo Z7 no comparten la misma infraestructura de conexión eléctrica:
 
@@ -390,7 +398,7 @@ Los pulsadores de la tarjeta Zybo Z7 no comparten la misma infraestructura de co
 
 ---
 
-#### 3.5.3 Solución Adoptada: Pulsadores Externos en Pmod JC
+#### 4.5.3 Solución Adoptada: Pulsadores Externos en Pmod JC
 
 Para obtener las señales de control de 4 bits adicionales sin recurrir al PS, se utilizaron los pines `V15` y `W15` del conector Pmod JC, los cuales sí pertenecen al dominio de E/S de la Lógica Programable (PL). Para ello, se montó un circuito de acondicionamiento en protoboard para cada pulsador utilizando resistencias de Pull-Down de $10\text{ k}\Omega$**:
 
@@ -398,13 +406,21 @@ Para obtener las señales de control de 4 bits adicionales sin recurrir al PS, s
 
 ---
 
-### 3.6 Testbench:
+#### 4.5.4 Montaje Final:
+
+Teniendo en cuenta todos los parámetros establecidos hasta el momento, se hizo el montaje final del circuito para luego corroborar su funcionamiento:
+
+<img width="509" height="638" alt="image" src="https://github.com/user-attachments/assets/3747417a-d2cb-4685-b859-7c50ae2b6fbb" />
+
+---
+
+### 4.6 Testbench:
 
 Para verificar la corrección lógica y funcional del módulo combinacional `comparador_claves` antes de su sintesis e implementación en hardware, se desarrolló su respectivo Testbench en el archivo `tb_comparador_claves.v`.
 
 ---
 
-#### 3.6.1 Estructura del Banco de Pruebas (`tb_comparador_claves.v`)
+#### 4.6.1 Estructura del Banco de Pruebas (`tb_comparador_claves.v`)
 
 Los elementos principales del testbench son:
 
@@ -420,7 +436,7 @@ Los elementos principales del testbench son:
 
 ---
 
-#### 3.6.2 Desglose Secuencial de los Casos de Prueba
+#### 4.6.2 Desglose Secuencial de los Casos de Prueba
 
 El bloque `initial` evalúa 5 casos combinacionales:
 
@@ -456,7 +472,7 @@ El bloque `initial` evalúa 5 casos combinacionales:
 
 ---
 
-#### 3.6.3 Comandos para Compilación y Ejecución
+#### 4.6.3 Comandos para Compilación y Ejecución
 
 Se utilizó la terminal de Visual Studio Code para ejecutar la compilación del código mediante el ejecutable de Icarus Verilog (iverilog) especificando el nombre del archivo de salida compilado:
 ```bash
@@ -473,7 +489,7 @@ gtkwave tb_comparador_claves.vcd
 
 ---
 
-#### 3.6.4 Simulación en GTKwave:
+#### 4.6.4 Simulación en GTKwave:
 
 En la siguiente imágen se observa el resultado de la simulación en gtkwave:
 
@@ -483,7 +499,7 @@ La simulación obtenida en GTKWave confirma el correcto funcionamiento combinaci
 
 ---
 
-### 3.7 Evidencia en hardware
+### 4.7 Evidencia en hardware
 
 Posterior a la síntesis, implementación y generación del archivo del Bitstream, se programó la FPGA de la tarjeta Zybo Z7 para validar físicamente el comportamiento del circuito combinacional. La tabla que resume todos los casos analizados en la FPGA se muestran en el apartado 3.3 donde se habla del funcionamiento del código. Los videos del funcionamiento se muestran a continuación:
 
@@ -509,7 +525,7 @@ https://drive.google.com/file/d/1E4oubo-MjnVE2xM_q3h9DHCkofTUUTD5/view?usp=shari
 
 ---
 
-### 3.8 Conclusiones
+### 4.8 Conclusiones
 
 * **Funcionamiento ASM y FSM:** Se demostró que el modelo de  ASM de estado único (S0) es una herramienta eficaz para representar el flujo de datos en circuitos combinacionales  como una ALU de 4 bits. Además, se confirmó que al no existir señal de reloj (`clk`) ni elementos de memoria (Flip-Flops/registros), el diseño no requiere de una Máquina de Estados Finitos (FSM) secuencial, garantizando una respuesta inmediata en las salidas ante cualquier cambio en las entradas.
 
@@ -519,6 +535,6 @@ https://drive.google.com/file/d/1E4oubo-MjnVE2xM_q3h9DHCkofTUUTD5/view?usp=shari
 
 * **Eficiencia del Mapeo RGB:** La implementación de los operadores de reducción OR (`|`) sobre los buses de resultados lógicos de 4 bits (`res_and`, `res_or`, `res_xor`) demostró ser una solución óptima en hardware para compactar vectores de datos en señales de control de un solo bit. Esto facilitó la sintesis del control del LED RGB LD6, permitiendo identificar visualmente la relación entre los operandos mediante los colores de la luz de este: Blanco para casos generales, Amarillo para operandos idénticos (`res_xor = 0`) y Cyan para operandos complementarios (`res_and = 0`).
 
-
 ---
 
+## 5 Bibliografía
