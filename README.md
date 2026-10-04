@@ -172,7 +172,6 @@ set_property -dict { PACKAGE_PIN M17   IOSTANDARD LVCMOS33 } [get_ports { led[2]
 
 ### 2.6 Evidencia en hardware
 
-#### Flujo de Implementación en Vivado
 Para poder implementar el smoke test en la FPGA y demostrar el correcto funcionamiento de todos los procesos y archivos mostrados hasta el momento, fue necesario seguir los siguientes pasos:
 1. **Síntesis e Implementación:** Se importaron los archivos `Smoke_Test_FPGA.v` y `Pines_Smoke_Test.xdc` en Xilinx Vivado. Se ejecutaron los procesos de síntesis e implementación sin errores de temporización ni conflictos de asignación de I/O.
 2. **Generación del Bitstream:** Se generó exitosamente el archivo ejecutable de hardware (`.bit`).
@@ -190,9 +189,11 @@ Una vez cargado el bitstream en la FPGA, el LED RGB comenzó la secuencia cícli
 * **Estado 4 (Amarillo):** Retorna a la combinación rojo + verde para generar el color amarillo.
 * **Reinicio de ciclo:** Transcurridos todos los estados, la secuencia reinicia de forma continua en Estado Rojo.
 
-### 2.7 Observaciones
+### 2.7 Conclusiones
 
-En el código base, el segundo estado se comenta como "amarillo", pero se codifica como `3'b010`, que según el `.xdc` corresponde al canal azul (M17). Por eso la secuencia observada es rojo → azul → verde → azul. El LED RGB no tiene un canal amarillo propio: para obtenerlo habría que encender R y G a la vez (`3'b101`).
+* El sistema demostró un comportamiento estable en todos los estados, respondiendo correctamente dentro de los parámetros esperados para la prueba inicial.
+* Los Leds rojo, amarillo y verde se encendieron debido a que en el código se asignó explícitamente patrones de bits específicos para prender dichos colores en cada umbral del contador. Como se puede ver de esos patrones (`3'b001`, `3'b011`, `3'b010`), el bit más significativo es el led azul, el segundo bit más significativo es el verde y el bit menos significativo es el rojo.
+* El Led azul permaneció apagado porque ninguna de las condiciones o asignaciones activa el bit correspondiente al azul, es decir `3'b100`
 
 \---
 
