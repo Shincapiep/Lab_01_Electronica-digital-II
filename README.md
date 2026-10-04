@@ -12,11 +12,13 @@
 
 ---
 
-## Contenido
+## Tabla de Contenidos
 
-1. [Instalación y configuración del proyecto](#1-instalación-y-configuración-del-proyecto)
-2. [Smoke Test: semáforo en LED RGB](#2-smoke-test-semáforo-en-led-rgb)
-3. [Test funcional personalizado: comparador de claves](#3-test-funcional-personalizado-comparador-de-claves)
+* [1. Introducción](#1-introducción)
+* [2. Instalación y configuración del proyecto](#2-instalación-y-configuración-del-proyecto)
+* [3. Smoke Test: Semáforo en LED RGB](#3-smoke-test-semáforo-en-led-rgb)
+* [4. Test funcional personalizado: Comparador de claves](#4-test-funcional-personalizado-comparador-de-claves)
+* [5. Bibliografía](#5-bibliografía)
 
 ---
 
