@@ -229,6 +229,19 @@ Como se puede ver, la ASM del consta de un único bloque de estado (S0), del cua
    * Si `btn[5] = 0`, el sistema ejecuta una resta de la forma `operando_a - operando_b`.
 4. **Cálculo Lógico y Salidas:** Se ejecutan en paralelo las operaciones AND, OR y XOR sobre los operandos a y b. Los resultados de 4 bits se definen mediante compuertas OR para determinar la conmutación de los canales Rojo, Verde y Azul del Led RGB (`led_rgb[2:0]`), mientras que `res_aritmetico` establece la salida `led[3:0]`.
 
+### 3.3 Funcionamiento y Análisis del Código:
+
+El módulo `comparador_claves` implementa una ALU de 4 bits puramente combinacional. Su propósito es procesar dos operandos de entrada (`operando_a` y `operando_b`), aplicar transformaciones opcionales y calcular tanto operaciones aritméticas como indicadores lógicos de coincidencia. El procesamiento de datos en el módulo se puede dividir en 5 bloques funcionales consecutivos:
+
+1. **Captura del Operando A:**
+   ```verilog
+   wire [3:0] operando_a = sw[3:0];
+   ```
+
+
+
+
+
 
 ### 3.2 Entradas y construcción de operandos
 
