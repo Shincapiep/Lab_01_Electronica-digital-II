@@ -17,7 +17,6 @@
 1. [Instalación y configuración del proyecto](#1-instalación-y-configuración-del-proyecto)
 2. [Smoke Test: semáforo en LED RGB](#2-smoke-test-semáforo-en-led-rgb)
 3. [Test funcional personalizado: comparador de claves](#3-test-funcional-personalizado-comparador-de-claves)
-4. [Conclusiones](#4-conclusiones)
 
 ---
 
