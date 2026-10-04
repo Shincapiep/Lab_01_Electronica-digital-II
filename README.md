@@ -205,7 +205,7 @@ Una vez cargado el bitstream en la FPGA, el LED RGB comenzó la secuencia cícli
 * Implementar una máscara de seguridad XOR de 4 bits para invertir el operando B mediante un pulsador de control (`btn[4]`).
 * Integrar un bloque aritmético de 4 bits capaz de realizar operaciones de suma y resta seleccionables mediante un bit de control (`btn[5]`), visualizando el resultado binario en los Leds individuales y monocromáticos (`led[3:0]`).
 * Aplicar operaciones lógicas combinacionales (AND, OR y XOR) sobre los operandos y utilizar operadores de OR para conmutar los canales del LED RGB (`led_rgb[2:0]`) como indicadores de estado.
-* Validar el comportamiento combinacional y las transiciones de señales mediante simulación en GTKWave (`tb_comparador_claves.v`) y verificar la implementación en hardware real según los switches (`sw[3:0]`), pulsadores de la FPGA (`btn[3:0]`), y botones externos conectado al puerto Cmod (`btn[4:5]`) y LEDs de la tarjeta Zybo Z7.
+* Validar el comportamiento combinacional y las transiciones de señales mediante simulación en GTKWave (`tb_comparador_claves.v`) y verificar la implementación en hardware real según los switches (`sw[3:0]`), pulsadores de la FPGA (`btn[3:0]`), y botones externos conectado al puerto Pmod (`btn[4:5]`) y LEDs de la tarjeta Zybo Z7.
 
 ### 3.2 Lógica del Ejercicio
 
@@ -286,30 +286,71 @@ El funcionamiento de algunos casos se muestran en la siguiente tabla:
 | `1100` (12) | `1100` (12) | `0` (Off) | `1100` (12) | `0` (Resta) | `12 - 12 = 0` | `0000` (0) | `1100` | `1100` | `0000` | `3'b011` | 🟡 Amarillo (R+G) |
 | `1010` (10) | `0101` (5) | `0` (Off) | `0101` (5) | `0` (Resta) | `10 - 5 = 5` | `0101` (5) | `0000` | `1111` | `1111` | `3'b110` | 🔵 Cyan (G+B) |
 
+### 3.4 Mapeo de Pines (`.xdc`):
+
+Para la implementación en la tarjeta Zybo Z7, se elaboró el archivo `Pines_Comparador_Claves`, mapeando las 10 entradas que salen entre switches y botones y las salidas de leds y led_rgb con los periféricos físicos integrados y una extensión externa en puerto Pmod.
+
+```tcl
+## Switches integrados (SW[3:0])
+set_property -dict { PACKAGE_PIN G15   IOSTANDARD LVCMOS33 } [get_ports { sw[0] }];
+set_property -dict { PACKAGE_PIN P15   IOSTANDARD LVCMOS33 } [get_ports { sw[1] }];
+set_property -dict { PACKAGE_PIN W13   IOSTANDARD LVCMOS33 } [get_ports { sw[2] }];
+set_property -dict { PACKAGE_PIN T16   IOSTANDARD LVCMOS33 } [get_ports { sw[3] }];
+
+## Pulsadores de la FPGA (BTN[3:0])
+set_property -dict { PACKAGE_PIN K18   IOSTANDARD LVCMOS33 } [get_ports { btn[0] }];
+set_property -dict { PACKAGE_PIN P16   IOSTANDARD LVCMOS33 } [get_ports { btn[1] }];
+set_property -dict { PACKAGE_PIN K19   IOSTANDARD LVCMOS33 } [get_ports { btn[2] }];
+set_property -dict { PACKAGE_PIN Y16   IOSTANDARD LVCMOS33 } [get_ports { btn[3] }];
+
+## Pulsadores externos en Proto (Pmod JC con Pull-Down externo)
+set_property -dict { PACKAGE_PIN V15   IOSTANDARD LVCMOS33 } [get_ports { btn[4] }]; # Pmod JC Pin 1
+set_property -dict { PACKAGE_PIN W15   IOSTANDARD LVCMOS33 } [get_ports { btn[5] }]; # Pmod JC Pin 2
+
+## LEDs Verdes integrados (LED[3:0])
+set_property -dict { PACKAGE_PIN M14   IOSTANDARD LVCMOS33 } [get_ports { led[0] }];
+set_property -dict { PACKAGE_PIN M15   IOSTANDARD LVCMOS33 } [get_ports { led[1] }];
+set_property -dict { PACKAGE_PIN G14   IOSTANDARD LVCMOS33 } [get_ports { led[2] }];
+set_property -dict { PACKAGE_PIN D18   IOSTANDARD LVCMOS33 } [get_ports { led[3] }];
+
+## RGB LED 6 integrados (LED_RGB[2:0])
+set_property -dict { PACKAGE_PIN V16   IOSTANDARD LVCMOS33 } [get_ports { led_rgb[0] }]; # Canal Rojo
+set_property -dict { PACKAGE_PIN F17   IOSTANDARD LVCMOS33 } [get_ports { led_rgb[1] }]; # Canal Verde
+set_property -dict { PACKAGE_PIN M17   IOSTANDARD LVCMOS33 } [get_ports { led_rgb[2] }]; # Canal Azul
+
+```
+
+| Señal HDL | Pin FPGA | Periférico Físico | Función Lógica en el Circuito |
+|---|---|---|---|
+| `sw[0]` | **G15** | Sw0 | Operando A - Bit 0 (LSB) |
+| `sw[1]` | **P15** | Sw1 | Operando A - Bit 1 |
+| `sw[2]` | **W13**| Sw2 | Operando A - Bit 2 |
+| `sw[3]` | **T16** | Sw3 | Operando A - Bit 3 (MSB) |
+| `btn[0]` | **K18** | Btn0 | Operando B - Bit 0 (LSB) |
+| `btn[1]` | **P16** | Btn1 | Operando B - Bit 1 |
+| `btn[2]` | **K19** | Btn2 | Operando B - Bit 2 |
+| `btn[3]` | **Y16** | Btn3 | Operando B - Bit 3 (MSB) |
+| `btn[4]` | **V15** | Puerto Pmod JC Pin 1 | Máscara XOR |
+| `btn[5]` | **W15** | Puerto Pmod JC Pin 2 | Selector de Suma |
+| `led[0]` | **M14** | Led0 | Resultado Aritmético - Bit 0 |
+| `led[1]` | **M15** | Led1 | Resultado Aritmético - Bit 1 |
+| `led[2]` | **G14** | Led2 | Resultado Aritmético - Bit 2 |
+| `led[3]` | **D18** | Led3 | Resultado Aritmético - Bit 3 |
+| `led_rgb[0]` | **V16** | Led RGB LD6 - Canal Rojo | Indicador Lógico AND (`res_and`) |
+| `led_rgb[1]` | **F17** | Led RGB LD6 - Canal Verde | Indicador Lógico OR (`res_or`) |
+| `led_rgb[2]` | **M17** | Led RGB LD6 - Canal Azul | Indicador Lógico XOR (`res_xor`) |
 
 
 
-### 3.2 Entradas y construcción de operandos
 
-|Entrada|Origen|Pin(es)|Función|
-|-|-|-|-|
-|`sw\[3:0]`|Switches SW3–SW0 de la tarjeta|T16, W13, P15, G15|Operando **A** (clave principal)|
-|`btn\[3:0]`|Botones BTN3–BTN0 de la tarjeta|Y16, K19, P16, K18|Operando **B** (clave ingresada)|
 |`btn\[4]`|Pulsador externo, Pmod JC|V15|Máscara XOR: invierte B (`B ^ 4'b1111`)|
 |`btn\[5]`|Pulsador externo, Pmod JC|W14|Modo aritmético: 0 = resta (por defecto), 1 = suma|
 
-```verilog
-wire \[3:0] operando\_a = sw\[3:0];
-wire \[3:0] operando\_b = btn\[4] ? (btn\[3:0] ^ 4'b1111) : btn\[3:0];
-```
-
-Así, A proviene únicamente de los switches y B de los botones (con o sin inversión), y las 10 entradas afectan el resultado.
-
-### 3.3 ¿Por qué no se usaron BTN4 y BTN5 de la tarjeta?
+### 3.4 ¿Por qué no se usaron BTN4 y BTN5 de la tarjeta?
 
 La Zybo Z7 tiene seis pulsadores, pero **solo BTN0–BTN3 están conectados a la lógica programable (PL)**. BTN4 y BTN5 están conectados a pines **MIO** del procesador, por lo que un diseño en Verilog no puede leerlos directamente.
 
-#### 3.3.1 Arquitectura del Zynq-7000: PS y PL
+#### 3.4.1 Arquitectura del Zynq-7000: PS y PL
 
 El Zynq-7000 integra dos partes en un mismo chip:
 
@@ -323,7 +364,7 @@ Cada parte tiene sus **propios pines**:
 * Los pines de la **PL** son de propósito general: cualquier puerto del módulo `top` se puede asignar a ellos con `PACKAGE\_PIN` en el `.xdc`. Es el caso de los switches, BTN0–BTN3, los LEDs y los Pmod JA–JE.
 * Los pines **MIO** (*Multiplexed I/O*) pertenecen al **PS**. Están cableados internamente al multiplexor de periféricos del procesador y **no tienen conexión con la lógica programable**.
 
-#### 3.3.2 Conexión de BTN4 y BTN5
+#### 3.4.2 Conexión de BTN4 y BTN5
 
 |Botón|Pin MIO|Pin del encapsulado|Banco / voltaje|Lo lee|
 |-|-|-|-|-|
@@ -336,7 +377,7 @@ Por eso, en el archivo `Zybo-Z7.xdc` de Digilent **no existen líneas para BTN4 
 Lo mismo ocurre con el **Pmod JF** y con el **LED LD4**: también están conectados a pines MIO, y por eso los botones externos se conectaron al Pmod **JC**, que sí pertenece a la PL.
 
 
-#### 3.3.4 Solución adoptada: pulsadores externos en el Pmod JC
+#### 3.4.3 Solución adoptada: pulsadores externos en el Pmod JC
 
 Se conectaron dos pulsadores externos al Pmod JC, cada uno con una resistencia de **pull-down de 10 kΩ**. Es la misma configuración que usa la tarjeta para BTN4 y BTN5, pero alimentada a 3.3 V para coincidir con el estándar `LVCMOS33` de los pines de la PL.
 
