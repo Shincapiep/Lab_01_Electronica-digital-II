@@ -173,6 +173,7 @@ set_property -dict { PACKAGE_PIN M17   IOSTANDARD LVCMOS33 } [get_ports { led[2]
 ### 2.6 Evidencia en hardware
 
 #### Flujo de Implementación en Vivado
+Para poder implementar el smoke test en la FPGA y demostrar el correcto funcionamiento de todos los procesos y archivos mostrados hasta el momento, fue necesario seguir los siguientes pasos:
 1. **Síntesis e Implementación:** Se importaron los archivos `Smoke_Test_FPGA.v` y `Pines_Smoke_Test.xdc` en Xilinx Vivado. Se ejecutaron los procesos de síntesis e implementación sin errores de temporización ni conflictos de asignación de I/O.
 2. **Generación del Bitstream:** Se generó exitosamente el archivo ejecutable de hardware (`.bit`).
 3. **Programación JTAG:** Se conectó la tarjeta Zybo Z7-20 a la estación de trabajo mediante el puerto Micro-USB. Luego se abrió el Hardware Manager de Vivado, se detectó la FPGA y se programó el dispositivo mediante la interfaz JTAG.
@@ -181,13 +182,13 @@ A continuación, se muestra el video del correcto funcionamiento del Smoke Test:
 
 https://github.com/user-attachments/assets/3a1d6b7b-a830-423f-acc0-ff0b0b93ff32
 
-Se programó el código base con los estados descomentados. Se observó la secuencia cíclica **rojo → azul → verde → azul**, con una duración aproximada de 0.64 s por estado, lo que confirma:
+Una vez cargado el bitstream en la FPGA, el LED RGB comenzó la secuencia cíclica de manera inmediata, validando físicamente la lógica del contador y las asignaciones de color:
 
-* Que la FPGA se programa correctamente por JTAG.
-* Que el reloj de 125 MHz está presente y el `create\_clock` es coherente con la temporización observada.
-* Que los tres canales del LED RGB responden y están asignados a pines válidos en el `.xdc`.
-
-
+* **Estado 1 (Rojo):** Se enciende el canal rojo (`led[0] = 1`).
+* **Estado 2 (Amarillo):** Se activan simultáneamente el canal rojo y verde (`led[0] = 1`, `led[1] = 1`), generando la mezcla de color amarillo.
+* **Estado 3 (Verde):** Se activa el canal verde (`led[1] = 1`).
+* **Estado 4 (Amarillo):** Retorna a la combinación rojo + verde para generar el color amarillo.
+* **Reinicio de ciclo:** Transcurridos todos los estados, la secuencia reinicia de forma continua en Estado Rojo.
 
 ### 2.7 Observaciones
 
