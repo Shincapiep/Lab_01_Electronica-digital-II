@@ -21,7 +21,7 @@
 
 ---
 
-## 1\. Instalación y configuración del proyecto
+## 1. Instalación y configuración del proyecto
 
 Se instalaron Vivado y Vitis 2025.2 mediante el *AMD Unified Installer* y se activó la licencia **Vivado Basic Tier (Node-Locked)**.
 
@@ -35,7 +35,7 @@ El proyecto se creó como **RTL Project** con los siguientes parámetros:
 
 ---
 
-## 2\. Smoke Test: Semáforo en LED RGB
+## 2. Smoke Test: Semáforo en LED RGB
 
 ### 2.1 Objetivo Del Ejercicio
 
@@ -71,7 +71,6 @@ Se abrió la herramienta GTKWave y se cargó el archivo de simulación .vcd gene
 ```bash
 gtkwave tb_Smoke_Test.vcd
 ```
-
 ---
 
 ### 2.3 Simulación Virtual en GTKwave
@@ -116,8 +115,6 @@ if (counter == 0)
     end
 ```
 
----
-
 3. **Tabla de Transición de Estados y Mapeo de Colores:** El comportamiento del LED puede dividirse en cuatro intervalos principales. Inicialmente, el contador se encuentra en cero y se activa el color rojo. Después de 80\,000\,000 ciclos de reloj, la salida cambia a amarillo. Posteriormente, al alcanzar 160\,000\,000 ciclos, el LED cambia a verde. Finalmente, al llegar a 240\,000\,000 ciclos, vuelve a amarillo. Una vez completado este último intervalo, cuando el contador alcance los 320\,000\,000 ciclos, la secuencia se reinicia y comienza nuevamente desde el color rojo. El comportamiento del código se resume en la próxima tabla:
 
 | Valor de `counter` | Intervalo de Ciclos | Estado Lógico | Salida `led[2:0]` | Canales Activos | Color Resultante |
@@ -128,6 +125,7 @@ if (counter == 0)
 | 240\,000\,000 | 240 x 10^6 < `counter` < 320 x 10^6 | Estado 4 | `3'b011` | Rojo + Verde (`led[0]`, `led[1]`) | 🟡 Amarillo |
 
 **Nota de Comparación:** Mientras que en `Smoke_Test_FPGA.v` cada color dura 80\,000\,000 ciclos de reloj, para ser perfectamente apreciable en la FPGA, en la versión de simulación `Smoke_Test.v` cada estado dura únicamente 10 ciclos de reloj para verificar la transición correcta de estados en GTKWave sin sobrecargar el tiempo de cómputo.
+---
 
 ### 2.5 Mapeo de pines (`.xdc`)
 
@@ -169,6 +167,7 @@ set_property -dict { PACKAGE_PIN M17   IOSTANDARD LVCMOS33 } [get_ports { led[2]
 **Prevención de Conflictos de Puerto:** Se tuvo que dejar comentadas las entradas de los Leds monocromáticos de la tarjeta (`led[0]` a `led[3]`). Si se hubieran dejado activas, Vivado habría generado un error fatal de conflicto de nombres de puerto duplicados (Port Name Collision) durante la fase de síntesis. 
 
 **Restricción Temporal:** Se utilizó `create\_clock` para informar a la herramienta que el reloj tiene un periodo de 8 ns, que es el valor que usa el análisis de tiempos durante la implementación.
+---
 
 ### 2.6 Evidencia en hardware
 
@@ -179,7 +178,7 @@ Para poder implementar el smoke test en la FPGA y demostrar el correcto funciona
 
 A continuación, se muestra el video del correcto funcionamiento del Smoke Test:
 
-https://github.com/user-attachments/assets/3a1d6b7b-a830-423f-acc0-ff0b0b93ff32
+https://github.com/user-attachments/assets/7f0663cb-3bfc-4fad-afe1-2038ad500c2f
 
 Una vez cargado el bitstream en la FPGA, el LED RGB comenzó la secuencia cíclica de manera inmediata, validando físicamente la lógica del contador y las asignaciones de color:
 
@@ -188,6 +187,7 @@ Una vez cargado el bitstream en la FPGA, el LED RGB comenzó la secuencia cícli
 * **Estado 3 (Verde):** Se activa el canal verde (`led[1] = 1`).
 * **Estado 4 (Amarillo):** Retorna a la combinación rojo + verde para generar el color amarillo.
 * **Reinicio de ciclo:** Transcurridos todos los estados, la secuencia reinicia de forma continua en Estado Rojo.
+---
 
 ### 2.7 Conclusiones
 
@@ -195,9 +195,9 @@ Una vez cargado el bitstream en la FPGA, el LED RGB comenzó la secuencia cícli
 * Los Leds rojo, amarillo y verde se encendieron debido a que en el código se asignó explícitamente patrones de bits específicos para prender dichos colores en cada umbral del contador. Como se puede ver de esos patrones (`3'b001`, `3'b011`, `3'b010`), el bit más significativo es el led azul, el segundo bit más significativo es el verde y el bit menos significativo es el rojo.
 * El Led azul permaneció apagado porque ninguna de las condiciones o asignaciones activa el bit correspondiente al azul, es decir `3'b100`
 
-\---
+---
 
-## 3\. Test funcional personalizado: Comparador de claves
+## 3. Test funcional personalizado: Comparador de claves
 
 ### 3.1 Objetivo del Ejercicio
 
@@ -206,6 +206,7 @@ Una vez cargado el bitstream en la FPGA, el LED RGB comenzó la secuencia cícli
 * Integrar un bloque aritmético de 4 bits capaz de realizar operaciones de suma y resta seleccionables mediante un bit de control (`btn[5]`), visualizando el resultado binario en los Leds individuales y monocromáticos (`led[3:0]`).
 * Aplicar operaciones lógicas combinacionales (AND, OR y XOR) sobre los operandos y utilizar operadores de OR para conmutar los canales del LED RGB (`led_rgb[2:0]`) como indicadores de estado.
 * Validar el comportamiento combinacional y las transiciones de señales mediante simulación en GTKWave (`tb_comparador_claves.v`) y verificar la implementación en hardware real según los switches (`sw[3:0]`), pulsadores de la FPGA (`btn[3:0]`), y botones externos conectado al puerto Pmod (`btn[4:5]`) y LEDs de la tarjeta Zybo Z7.
+---
 
 ### 3.2 Lógica del Ejercicio
 
@@ -228,6 +229,7 @@ Como se puede ver, la ASM del consta de un único bloque de estado (S0), del cua
    * Si `btn[5] = 1`, el sistema ejecuta una suma de la forma `operando_a + operando_b`.
    * Si `btn[5] = 0`, el sistema ejecuta una resta de la forma `operando_a - operando_b`.
 4. **Cálculo Lógico y Salidas:** Se ejecutan en paralelo las operaciones AND, OR y XOR sobre los operandos a y b. Los resultados de 4 bits se definen mediante compuertas OR para determinar la conmutación de los canales Rojo, Verde y Azul del Led RGB (`led_rgb[2:0]`), mientras que `res_aritmetico` establece la salida `led[3:0]`.
+---
 
 ### 3.3 Funcionamiento y Análisis del Código:
 
@@ -286,6 +288,8 @@ El funcionamiento de algunos casos se muestran en la siguiente tabla:
 | `0101` (5) | `0011` (3) | `0` (Off) | `0011` (3) | `1` (Suma) | `5 + 3 = 8` | `1000` (8) | `0001` | `0111` | `0110` | `3'b111` | ⚪ Blanco (R+G+B) |
 | `1100` (12) | `1100` (12) | `0` (Off) | `1100` (12) | `0` (Resta) | `12 - 12 = 0` | `0000` (0) | `1100` | `1100` | `0000` | `3'b011` | 🟡 Amarillo (R+G) |
 | `1010` (10) | `0101` (5) | `0` (Off) | `0101` (5) | `0` (Resta) | `10 - 5 = 5` | `0101` (5) | `0000` | `1111` | `1111` | `3'b110` | 🔵 Cyan (G+B) |
+
+---
 
 ### 3.4 Mapeo de Pines (`.xdc`):
 
@@ -348,6 +352,8 @@ La tabla que se presenta a continuación resume el mapeo de pines realizado en `
 
 **Coincidencia Exacta con la Interfaz del Módulo:** Las etiquetas utilizadas dentro de `get_ports` coinciden con los nombres declarados en el módulo `comparador_claves.v` (`sw[3:0]`, `btn[5:0]`, `led[3:0]` y `led_rgb[2:0]`), asegurando el enlace correcto de la red combinacional de la FPGA.
 
+---
+
 ### 3.5 Justificación Hardware: Uso de Pulsadores Externos en Puerto Pmod JC
 
 Para el funcionamiento del comparador de claves se requerían 6 señales de entrada definidas mediante pulsadores (`btn[5:0]`), cuatro bits para la clave ingresada (`btn[3:0]`), un bit para la máscara XOR (`btn[4]`) y un bit para el selector de modo de la ALU (`btn[5]`).
@@ -385,9 +391,13 @@ Para obtener las señales de control de 4 bits adicionales sin recurrir al PS, s
 
 <img width="752" height="581" alt="image" src="https://github.com/user-attachments/assets/53696894-d5f5-434a-9e87-752c1afef729" />
 
+---
+
 ### 3.6 Testbench:
 
 Para verificar la corrección lógica y funcional del módulo combinacional `comparador_claves` antes de su sintesis e implementación en hardware, se desarrolló su respectivo Testbench en el archivo `tb_comparador_claves.v`.
+
+---
 
 #### 3.6.1 Estructura del Banco de Pruebas (`tb_comparador_claves.v`)
 
@@ -402,6 +412,8 @@ Los elementos principales del testbench son:
 
 3. **Generación de Archivo VCD para GTKWave:**
    * Se incluyen las tareas del sistema `$dumpfile("tb_comparador_claves.vcd")` y `$dumpvars(0, tb_comparador_claves)` para mostrar todos los cambios de estado de las señales en un archivo `.vcd`.
+
+---
 
 #### 3.6.2 Desglose Secuencial de los Casos de Prueba
 
@@ -454,30 +466,81 @@ Se abrió la herramienta GTKWave y se cargó el archivo de simulación .vcd gene
 gtkwave tb_comparador_claves.vcd
 ```
 
+---
+
 #### 3.6.4 Simulación en GTKwave:
 
 En la siguiente imágen se observa el resultado de la simulación en gtkwave:
 
 <img width="987" height="218" alt="image" src="https://github.com/user-attachments/assets/ed7b281f-75eb-4452-a257-42c4751dd7b3" />
 
+La simulación obtenida en GTKWave confirma el correcto funcionamiento combinacional del módulo `comparador_claves` a lo largo de los cinco escenarios de prueba. Aunque, vale aclarar que los resultado mostrados en GTKwave están en sistema Hexadecimal, no en sistema decimal o binario. Por ello, se tiene que hacer la conversión de valores para que los resultados coincidan exactamente
 
-
-
-
+---
 
 ### 3.7 Evidencia en hardware
 
-Debido al peso de los videos, se subieron a Drive:
+### 3.7 Evidencia de Funcionamiento en Hardware (Implementación en FPGA)
 
-|Prueba|Video|
-|-|-|
-|Suma|[Ver video](https://drive.google.com/file/d/1t9L1MJck8z5sETM7WIkysCyToE96TEmu/view?usp=drive_link)|
-|Resta|[Ver video](https://drive.google.com/file/d/10wHqPUYK5qbUX6gKikMrIQrhTMwL7ZEu/view?usp=drive_link)|
-|Inversión (XOR)|[Ver video](https://drive.google.com/file/d/1NcaNUGEpHWUaIFor67Q67xMHiMcH-EaO/view?usp=drive_link)|
-|Comparación (claves iguales)|[Ver video](https://drive.google.com/file/d/1cw_783hJGDOCyfy101v3lDOaaBDURRYa/view?usp=drive_link)|
+Posterior a la sintesis, implementación y generación del archivo de mapa de bits (*Bitstream* `.bit`) en Xilinx Vivado, se programó la FPGA de la tarjeta Zybo Z7 para validar físicamente el comportamiento del circuito combinacional.
 
-\---
+---
 
-## 4\. Conclusiones
+#### 3.7.1 Montaje del Prototipo Físico
 
+El montaje experimental se compone de los siguientes elementos:
+
+1. **Tarjeta Zybo Z7:** Alimentada y programada mediante conexión Micro-USB JTAG.
+2. **Entradas Integradas:** Uso de los 4 switches `SW[3:0]` para el operando $A$ y los 4 pulsadores `BTN[3:0]` para el operando $B$.
+3. **Módulo de Extensión Protoboard:** Conectado al puerto **Pmod JC** de la PL (pines `V15` y `W15`), implementando los pulsadores externos `btn[4]` (Máscara XOR) y `btn[5]` (Selector de modo Aritmético) con sus respectivas resistencias de Pull-Down de $10\text{ k}\Omega$.
+4. **Indicadores de Salida:** Los 4 LEDs verdes integrados `LD[3:0]` representan el resultado aritmético (`led[3:0]`), mientras que el LED RGB tri-color `LD6` despliega la respuesta de las reducciones lógicas (`led_rgb[2:0]`).
+
+---
+
+#### 3.7.2 Tabla de Comprobación en Hardware
+
+La siguiente tabla resume la verificación directa sobre la tarjeta de desarrollo para los cinco casos de prueba evaluados previamente en simulación[cite: 4]:
+
+| Caso | Switches `SW[3:0]` ($A$) | Pulsadores `BTN[3:0]` | Pmod `btn[4]` (Máscara) | Pmod `btn[5]` (Modo) | Estado de LEDs Verdes `LD3..LD0` | Estado del LED RGB `LD6` | Color Visual Observado |
+| :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| **1** | `1010` (10)[cite: 4] | `0011` (3)[cite: 4] | Presionado ($0$)[cite: 4] | Presionado ($0$)[cite: 4] | `0111` ($7_{10}$)[cite: 4] | `111` (B, G, R activos) | ⚪ **Blanco** |
+| **2** | `1010` (10)[cite: 4] | `0011` (3)[cite: 4] | **Pulsado ($1$)**[cite: 4] | Presionado ($0$)[cite: 4] | `1110` ($14_{10} / -2$)[cite: 4] | `111` (B, G, R activos) | ⚪ **Blanco** |
+| **3** | `0101` (5)[cite: 4] | `0011` (3)[cite: 4] | Presionado ($0$)[cite: 4] | **Pulsado ($1$)**[cite: 4] | `1000` ($8_{10}$)[cite: 4] | `111` (B, G, R activos) | ⚪ **Blanco** |
+| **4** | `1100` (12)[cite: 4] | `1100` (12)[cite: 4] | Presionado ($0$)[cite: 4] | Presionado ($0$)[cite: 4] | `0000` ($0_{10}$)[cite: 4] | `011` (G, R activos) | 🟡 **Amarillo** |
+| **5** | `1010` (10)[cite: 4] | `0101` (5)[cite: 4] | Presionado ($0$)[cite: 4] | Presionado ($0$)[cite: 4] | `0101` ($5_{10}$)[cite: 4] | `110` (B, G activos) | 🩵 **Cyan** |
+
+---
+
+#### 3.7.3 Registro Fotográfico y Validación de Casos
+
+##### Resta:
+
+
+
+##### Suma:
+
+
+##### Overflow:
+
+
+##### Máscara XOR y Complemento a 2:
+
+
+##### Clave Exacta:
+
+
+---
+
+### 3.8 Conclusiones
+
+1. **Funcionamiento ASM y FSM:** Se demostró que el modelo de  ASM de estado único (S0) es una herramienta eficaz para representar el flujo de datos en circuitos combinacionales  como una ALU de 4 bits. Además, se confirmó que al no existir señal de reloj (`clk`) ni elementos de memoria (Flip-Flops/registros), el diseño no requiere de una Máquina de Estados Finitos (FSM) secuencial, garantizando una respuesta inmediata en las salidas ante cualquier cambio en las entradas.
+
+2. **Dominio de la Arquitectura SoC Zynq-7000 (PS vs. PL):** El análisis del mapeo de pines permitió comprender la división estructural entre el Sistema de Procesamiento (PS) y la Lógica Programable (PL) del chip Zynq-7000. Al verificar que los pulsadores Btn4 y Btn5 pertenecen a pines MIO del procesador ARM, se justificó la necesidad técnica de extender las señales mediante el puerto Pmod JC de la PL. La inclusión de resistencias de pull-down de $10\text{ k}\Omega$ acondicionó correctamente las entradas `btn[4]` y `btn[5]` a un estado activo en alto, evitando niveles lógicos flotantes.
+
+3. **Correspondencia entre Simulación y Hardware:** La simulación funcional realizada con Icarus Verilog y visualizada en GTKWave coincidió exactamente con el comportamiento observado físicamente en la FPGA Zybo Z7. Se validó la representación de números negativos en complemento a 2 en la salida de 4 bits, la correcta aplicación del complemento a 1 al activar la máscara XOR, y la conmutación precisa del selector de modo suma/resta.
+
+4. **Eficiencia del Mapeo RGB:** La implementación de los operadores de reducción OR (`|`) sobre los buses de resultados lógicos de 4 bits (`res_and`, `res_or`, `res_xor`) demostró ser una solución óptima en hardware para compactar vectores de datos en señales de control de un solo bit. Esto facilitó la sintesis del control del LED RGB LD6, permitiendo identificar visualmente la relación entre los operandos mediante los colores de la luz de este: Blanco para casos generales, Amarillo para operandos idénticos (`res_xor = 0`) y Cyan para operandos complementarios (`res_and = 0`).
+
+
+---
 
