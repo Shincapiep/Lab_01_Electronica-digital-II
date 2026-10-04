@@ -165,7 +165,7 @@ set_property -dict { PACKAGE_PIN M17   IOSTANDARD LVCMOS33 } [get_ports { led[2]
 
 **Prevención de Conflictos de Puerto:** Se tuvo que dejar comentadas las entradas de los Leds monocromáticos de la tarjeta (`led[0]` a `led[3]`). Si se hubieran dejado activas, Vivado habría generado un error fatal de conflicto de nombres de puerto duplicados (Port Name Collision) durante la fase de síntesis. 
 
-**Restricción Temporal:** Se utilizó `create\_clock` para informar a la herramienta que el reloj tiene un periodo de 8 ns, que es el valor que usa el análisis de tiempos durante la implementación.
+*Restricción Temporal:** Se utilizó `create\_clock` para informar a la herramienta que el reloj tiene un periodo de 8 ns, que es el valor que usa el análisis de tiempos durante la implementación.
 ---
 
 ### 2.6 Evidencia en hardware
