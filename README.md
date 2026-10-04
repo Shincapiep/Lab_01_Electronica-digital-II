@@ -205,7 +205,7 @@ Una vez cargado el bitstream en la FPGA, el LED RGB comenzó la secuencia cícli
 * Implementar una máscara de seguridad XOR de 4 bits para invertir el operando B mediante un pulsador de control (`btn[4]`).
 * Integrar un bloque aritmético de 4 bits capaz de realizar operaciones de suma y resta seleccionables mediante un bit de control (`btn[5]`), visualizando el resultado binario en los Leds individuales y monocromáticos (`led[3:0]`).
 * Aplicar operaciones lógicas combinacionales (AND, OR y XOR) sobre los operandos y utilizar operadores de OR para conmutar los canales del LED RGB (`led_rgb[2:0]`) como indicadores de estado.
-* Validar el comportamiento combinacional y las transiciones de señales mediante simulación en GTKWave (`tb_comparador_claves.v`) y verificar la implementación en hardware real mapeando switches (`sw[3:0]`), pulsadores integrados (`btn[3:0]`), botones externos en puerto Pmod (`btn[4:5]`) y LEDs de la tarjeta Zybo Z7.
+* Validar el comportamiento combinacional y las transiciones de señales mediante simulación en GTKWave (`tb_comparador_claves.v`) y verificar la implementación en hardware real según los switches (`sw[3:0]`), pulsadores de la FPGA (`btn[3:0]`), y botones externos conectado al puerto Cmod (`btn[4:5]`) y LEDs de la tarjeta Zybo Z7.
 
 ### 3.2 Lógica del Ejercicio
 
@@ -276,15 +276,15 @@ El módulo `comparador_claves` implementa una ALU de 4 bits puramente combinacio
    assign led_rgb[1] = |res_or;  // Canal Verde (OR)
    assign led_rgb[2] = |res_xor; // Canal Azul (XOR)
    ```
+El funcionamiento de algunos casos se muestran en la siguiente tabla:
 
-
-| **Entrada sw (A)** | **Entrada `btn[3:0]`** | **Máscara `btn[4]`** | **Operando B Final** | **Modo `btn[5]`** | **Operación Aritmética** | **Salida `led[3:0]`** | **res_and** | **res_or** | **res_xor** | **Salida RGB led_rgb {B,G,R}** | **Color Resultante** |
+| **Entrada `sw[3:0]` (A)** | **Entrada `btn[3:0]` (B)** | **Máscara XOR`btn[4]`** | **Operando B Final** | **Modo `btn[5]`** | **Operación Aritmética** | **Salida `led[3:0]`** | **res_and** | **res_or** | **res_xor** | **Salida RGB led_rgb {B,G,R}** | **Color Resultante** |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | `1010` (10) | `0011` (3) | `0` (Off) | `0011` (3) | `0` (Resta) | `10 - 3 = 7` | `0111` (7) | `0010` | `1011` | `1001` | `3'b111` | ⚪ Blanco (R+G+B) |
 | `1010` (10) | `0011` (3) | `1` (On) | `1100` (12) | `0` (Resta) | `10 - 12 = -2` | `1110` (14 / -2) | `1000` | `1110` | `0110` | `3'b111` | ⚪ Blanco (R+G+B) |
 | `0101` (5) | `0011` (3) | `0` (Off) | `0011` (3) | `1` (Suma) | `5 + 3 = 8` | `1000` (8) | `0001` | `0111` | `0110` | `3'b111` | ⚪ Blanco (R+G+B) |
 | `1100` (12) | `1100` (12) | `0` (Off) | `1100` (12) | `0` (Resta) | `12 - 12 = 0` | `0000` (0) | `1100` | `1100` | `0000` | `3'b011` | 🟡 Amarillo (R+G) |
-| `1010` (10) | `0101` (5) | `0` (Off) | `0101` (5) | `0` (Resta) | `10 - 5 = 5` | `0101` (5) | `0000` | `1111` | `1111` | `3'b110` | 🩵 Cyan (G+B) |
+| `1010` (10) | `0101` (5) | `0` (Off) | `0101` (5) | `0` (Resta) | `10 - 5 = 5` | `0101` (5) | `0000` | `1111` | `1111` | `3'b110` | 🔵 Cyan (G+B) |
 
 
 
