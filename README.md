@@ -44,6 +44,7 @@ El proyecto se creó como **RTL Project** con los siguientes parámetros:
 * Verificar el flujo completo **HDL → Síntesis → Implementación → Bitstream → Programación por JTAG**, junto con el reloj de la tarjeta y el mapeo de pines del `.xdc`, usando el diseño entregado en la guía del laboratorio.
 
 ---
+
 ### 2.2 Descarga del Módulo Secuencial y Creación del Testbench:
 
 Se descargó el archivo `Smoke_Test.v` y posteriormente se creó el archivo `tb_Smoke_Test.v` en Visual Studio Code. La función de cada uno es la siguiente:
@@ -70,6 +71,7 @@ Se abrió la herramienta GTKWave y se cargó el archivo de simulación .vcd gene
 ```bash
 gtkwave tb_Smoke_Test.vcd
 ```
+
 ---
 
 ### 2.3 Simulación Virtual en GTKwave
@@ -124,6 +126,7 @@ if (counter == 0)
 | 240\,000\,000 | 240 x 10^6 < `counter` < 320 x 10^6 | Estado 4 | `3'b011` | Rojo + Verde (`led[0]`, `led[1]`) | 🟡 Amarillo |
 
 **Nota de Comparación:** Mientras que en `Smoke_Test_FPGA.v` cada color dura 80\,000\,000 ciclos de reloj, para ser perfectamente apreciable en la FPGA, en la versión de simulación `Smoke_Test.v` cada estado dura únicamente 10 ciclos de reloj para verificar la transición correcta de estados en GTKWave sin sobrecargar el tiempo de cómputo.
+
 ---
 
 ### 2.5 Mapeo de pines (`.xdc`)
@@ -159,7 +162,6 @@ set_property -dict { PACKAGE_PIN M17   IOSTANDARD LVCMOS33 } [get_ports { led[2]
 | `led[0]` | V16 | Canal Rojo (R) del LED RGB LD6 |
 | `led[1]` | F17 | Canal Verde (G) del LED RGB LD6 | 
 | `led[2]` | M17 | Canal Azul (B) del LED RGB LD6 | 
-
 
 **Modificación y Renombrado de Pines:** Se descomentó la línea del pin `K17` correspondiente al reloj de 125 MHz de la FPGA y también los pines correspondientes a los tres colores del LED LD6 (`V16`, `F17`, `M17`) y se renombraron sus puertos en la instrucción `get_ports` de `led6_r`, `led6_g` y `led6_b` a `led[0]`, `led[1]` y `led[2]` respectivamente, logrando el enlace directo con el vector de salida `led[2:0]` del módulo `Smoke_Test_FPGA.v`.
 
@@ -206,6 +208,7 @@ Una vez cargado el bitstream en la FPGA, el LED RGB comenzó la secuencia cícli
 * Integrar un bloque aritmético de 4 bits capaz de realizar operaciones de suma y resta seleccionables mediante un bit de control (`btn[5]`), visualizando el resultado binario en los Leds individuales y monocromáticos (`led[3:0]`).
 * Aplicar operaciones lógicas combinacionales (AND, OR y XOR) sobre los operandos y utilizar operadores de OR para conmutar los canales del LED RGB (`led_rgb[2:0]`) como indicadores de estado.
 * Validar el comportamiento combinacional y las transiciones de señales mediante simulación en GTKWave (`tb_comparador_claves.v`) y verificar la implementación en hardware real según los switches (`sw[3:0]`), pulsadores de la FPGA (`btn[3:0]`), y botones externos conectado al puerto Pmod (`btn[4:5]`) y LEDs de la tarjeta Zybo Z7.
+
 ---
 
 ### 3.2 Lógica del Ejercicio
@@ -229,6 +232,7 @@ Como se puede ver, la ASM del consta de un único bloque de estado (S0), del cua
    * Si `btn[5] = 1`, el sistema ejecuta una suma de la forma `operando_a + operando_b`.
    * Si `btn[5] = 0`, el sistema ejecuta una resta de la forma `operando_a - operando_b`.
 4. **Cálculo Lógico y Salidas:** Se ejecutan en paralelo las operaciones AND, OR y XOR sobre los operandos a y b. Los resultados de 4 bits se definen mediante compuertas OR para determinar la conmutación de los canales Rojo, Verde y Azul del Led RGB (`led_rgb[2:0]`), mientras que `res_aritmetico` establece la salida `led[3:0]`.
+
 ---
 
 ### 3.3 Funcionamiento y Análisis del Código:
