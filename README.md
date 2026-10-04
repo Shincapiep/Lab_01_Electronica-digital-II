@@ -538,3 +538,9 @@ https://drive.google.com/file/d/1E4oubo-MjnVE2xM_q3h9DHCkofTUUTD5/view?usp=shari
 ---
 
 ## 5 Bibliografía
+
+[^1]: J. Velásquez, *"Lab01: FPGA (Zybo Z7), Vivado/Vitis y Validación de Hardware"*, 2026. [Ver repositorio en GitHub](https://github.com/jovelasquezs/2026-2_Lab_Electronica_Digital_2_G3yG4/tree/3e5a3563f740d5e2b09740820cf07ccb5b9a238e/labs/lab01)
+[^2]: Digilent, *"Zybo Z7 Reference Manual"*, Digilent Inc., 2026. [Ver manual de referencia](https://digilent.com/reference/programmable-logic/zybo-z7/reference-manual)
+[^3]: AMD / Xilinx, *"Zynq-7000 SoC Technical Reference Manual"*, UG585, 2021. [Ver documentación oficial de AMD](https://docs.amd.com/r/en-US/ug585-zynq-7000-SoC-TRM/Introduction?tocId=oRoKUQufl_PGU6ByBXr1ag)
+
+---
