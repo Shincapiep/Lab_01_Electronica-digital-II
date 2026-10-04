@@ -95,7 +95,7 @@ Como se puede ver en la imagen anterior, el comportamiento de la prueba fue el e
 El módulo `Smoke_Test_FPGA` implementa el control secuencial de un LED RGB mediante una señal de reloj `clk`. El módulo recibe como entrada la señal de reloj de la FPGA y genera una salida de 3 bits `led[2:0]` conectada a los canales del LED RGB LD6 de la tarjeta Zybo Z7. El funcionamiento del diseño se basa en una arquitectura secuencial implementada mediante dos bloques `always @(posedge clk)`, los cuales se ejecutan en cada flanco ascendente de la señal de reloj:
 
 1. **Contador Principal:** El primer bloque corresponde al contador principal, cuya función es manejar los tiempos para determinar el momento en que debe cambiar el color del LED. La variable `counter` se inicializa en cero y se incrementa en una unidad en cada ciclo de reloj. Cuando el contador alcanza el valor de 320\,000\,000$, se reinicia a cero, permitiendo que la secuencia de colores se repita continuamente. Esto ocurre en el fragmento:
-```bash
+```verilog
 if (counter>=320000000) //Contador adaptado para la FPGA
         counter <= 0;
     else
@@ -104,7 +104,7 @@ if (counter>=320000000) //Contador adaptado para la FPGA
 ```
 
 2. **Máquina de Estados de Selección de Color:** El segundo bloque implementa la selección de los colores del LED RGB. En este bloque se evalúa continuamente el valor del contador `counter` y, de acuerdo con los intervalos previamente establecidos, se actualiza el registro `led[2:0]`. Al utilizar asignaciones no bloqueantes (`<=`), la salida conserva el valor asignado durante el intervalo correspondiente, hasta que el contador alcance el siguiente límite y se produzca una nueva actualización. Esto ocurre en la siguiente parte del código:
-```bash
+```verilog
 if (counter == 0)
         led <= 3'b001;//Rojo
     else if (counter == 80000000)
@@ -238,15 +238,53 @@ El módulo `comparador_claves` implementa una ALU de 4 bits puramente combinacio
    ```verilog
    wire [3:0] operando_a = sw[3:0];
    ```
+   
 2. **Acondicionamiento y Máscara XOR para el Operando B:**
    Aquí se utiliza un multiplexor condicional controlado por el pulsador `btn[4]` para definir si se invierte el valor de los bits del `operando_b` o si se mantienen en su valor original. Estos procesos se definen si:
    * `btn[4] = 0` (Pass): `operando_b` = `btn[3:0]`.
-   * `btn[4] = 1` (Máscara Activa): Invierte bit a bit la clave ingresada ($`btn[3:0]` \oplus 1111_2$), lo que equivale a calcular su complemento a 1.
+   * `btn[4] = 1` (Máscara Activa): Invierte bit a bit la clave ingresada ($btn[3:0] \oplus 1111_2$), lo que equivale a calcular su complemento a 1.
    ```verilog
    wire [3:0] operando_b = btn[4] ? (btn[3:0] ^ 4'b1111) : btn[3:0];
    ```
+   
+3. **Suma y Resta de 4 bits:**
+   El bit del `btn[5]` actúa como selector del modo aritmético de la ALU:
+   * `btn[5] = 0` (Resta): `res_aritmetico` = `operando_a - operando_b`.
+   * `btn[5] = 1` (Suma): `res_aritmetico` = `operando_a + operando_b`.
+   ```verilog
+   wire [3:0] res_aritmetico = btn[5] ? (operando_a + operando_b) : (operando_a - operando_b);
+   ```
+   Hay que tener en cuenta que al definir una salida de 4 bits (`led[3:0]`), si el resultado de una resta da negativo, el valor se representa en Complemento a 2
+   
+4.  **Evaluación de Vectores Lógicos:**
+   Calcula en paralelo las tres operaciones lógicas fundamentales bit a bit entre los vectores de 4 bits del `operando_a`. y el `operando_b`.
+   ```verilog
+   wire [3:0] res_and = operando_a & operando_b;
+   wire [3:0] res_or  = operando_a | operando_b;
+   wire [3:0] res_xor = operando_a ^ operando_b;
+   ```
+   
+5.  **Control de los Leds:**
+   Aplica el operador de reducción OR (`|`) sobre los resultados vectoriales de 4 bits. Este operador evalúa todos los bits del vector y devuelve un único bit (1 o 0):
+   * Canal Rojo (`led_rgb[0]`): Se enciende si `|res_and = 1`, indicando que ambos operandos coinciden en el valor '1' en al menos una posición.
+   * Canal Verde (`led_rgb[1]`): Se enciende si `|res_or = 1`, indicando que existe al menos un bit en '1' entre ambos operandos
+   * Canal Azul (`led_rgb[2]`): Se enciende si `|res_xor = 1`, indicando disparidad o diferencia en al menos una posición de bit entre los operandos.
+   ```verilog
+   assign led[3:0] = res_aritmetico;
+
+   assign led_rgb[0] = |res_and; // Canal Rojo (AND)
+   assign led_rgb[1] = |res_or;  // Canal Verde (OR)
+   assign led_rgb[2] = |res_xor; // Canal Azul (XOR)
+   ```
 
 
+| **Entrada sw (A)** | **Entrada `btn[3:0]`** | **Máscara `btn[4]`** | **Operando B Final** | **Modo `btn[5]`** | **Operación Aritmética** | **Salida `led[3:0]`** | **res_and** | **res_or** | **res_xor** | **Salida RGB led_rgb {B,G,R}** | **Color Resultante** |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| `1010` (10) | `0011` (3) | `0` (Off) | `0011` (3) | `0` (Resta) | `10 - 3 = 7` | `0111` (7) | `0010` | `1011` | `1001` | `3'b111` | ⚪ Blanco (R+G+B) |
+| `1010` (10) | `0011` (3) | `1` (On) | `1100` (12) | `0` (Resta) | `10 - 12 = -2` | `1110` (14 / -2) | `1000` | `1110` | `0110` | `3'b111` | ⚪ Blanco (R+G+B) |
+| `0101` (5) | `0011` (3) | `0` (Off) | `0011` (3) | `1` (Suma) | `5 + 3 = 8` | `1000` (8) | `0001` | `0111` | `0110` | `3'b111` | ⚪ Blanco (R+G+B) |
+| `1100` (12) | `1100` (12) | `0` (Off) | `1100` (12) | `0` (Resta) | `12 - 12 = 0` | `0000` (0) | `1100` | `1100` | `0000` | `3'b011` | 🟡 Amarillo (R+G) |
+| `1010` (10) | `0101` (5) | `0` (Off) | `0101` (5) | `0` (Resta) | `10 - 5 = 5` | `0101` (5) | `0000` | `1111` | `1111` | `3'b110` | 🩵 Cyan (G+B) |
 
 
 
