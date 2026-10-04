@@ -515,19 +515,23 @@ La siguiente tabla resume la verificación directa sobre la tarjeta de desarroll
 
 ##### Resta:
 
-
+https://drive.google.com/file/d/1nVd-jWhOfpiVRmqh8hJeXqVesKa9fnnU/view?usp=sharing
 
 ##### Suma:
 
+https://drive.google.com/file/d/1tL7mvAmAGjibppvTavf2N22H3Unscz0j/view?usp=sharing
 
 ##### Overflow:
 
+https://drive.google.com/file/d/1T67MufwJOuXnFlX43oRRO7spbdCbW0nT/view?usp=sharing
 
 ##### Máscara XOR y Complemento a 2:
 
+https://drive.google.com/file/d/1_sCcjnLLs7in_NdXpzZ6R1EprPdu-wdj/view?usp=sharing
 
 ##### Clave Exacta:
 
+https://drive.google.com/file/d/1E4oubo-MjnVE2xM_q3h9DHCkofTUUTD5/view?usp=sharing
 
 ---
 
