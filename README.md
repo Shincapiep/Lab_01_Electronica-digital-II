@@ -359,151 +359,31 @@ El SoC Zynq-7000 de Xilinx/AMD integra dos bloques conceptuales y físicos indep
 
 | Sistema | Descripción / Componentes | Entorno de Programación | Conexión de Pines I/O |
 | :--- | :--- | :--- | :--- |
-| **PS** (*Processing System*) | Procesador ARM Cortex-A9 y sus periféricos integrados (UART, USB, Ethernet, controladores de memoria y GPIOs de sistema). | Software (C/C++) en el entorno Vitis. | Pines MIO (*Multiplexed I/O*). **Sin acceso directo desde lógica HDL.** |
-| **PL** (*Programmable Logic*) | Matriz de Lógica Programable equivalente a una FPGA Artix-7. | Lenguajes HDL (Verilog/VHDL) y archivos `.xdc` en Vivado. | Pines de la PL. **Totalmente mapeables mediante la directiva `PACKAGE_PIN`.** |
-
----
+| PS (*Processing System*) | Procesador ARM Cortex-A9 y sus periféricos integrados (UART, USB, Ethernet, controladores de memoria y GPIOs de sistema). | Software (C/C++) en el entorno Vitis. | Pines MIO (Sin acceso directo desde lógica HDL)|
+| PL (*Programmable Logic*) | Matriz de Lógica Programable equivalente a una FPGA Artix-7. | Lenguajes HDL (Verilog/VHDL) y archivos `.xdc` en Vivado. | Pines de la PL (Totalmente mapeables mediante la directiva `PACKAGE_PIN`) |
 
 #### 3.5.2 Limitación Física de los Pulsadores BTN4 y BTN5
 
 Los pulsadores de la tarjeta Zybo Z7 no comparten la misma infraestructura de conexión eléctrica:
 
-| Botón / Periférico | Pin del SoC | Tipo de Pin | Banco y Voltaje | Compatibilidad con Verilog (PL) |
+| Botón / Periférico | Pin del SoC | Tipo de Pin | Compatibilidad con Verilog (PL) |
 | :---: | :---: | :---: | :---: | :---: |
-| **BTN0 – BTN3** | `K18`, `P16`, `K19`, `Y16` | I/O de la PL | Banco PL ($3.3\text{ V}$) | **Compatible** (Mapeados en `.xdc`) |
-| **BTN4** | `B13` | **MIO 50 (PS)** | Banco 501 - PS ($1.8\text{ V}$) | **Incompatible** (Exclusivo del procesador ARM) |
-| **BTN5** | `B9` | **MIO 51 (PS)** | Banco 501 - PS ($1.8\text{ V}$) | **Incompatible** (Exclusivo del procesador ARM) |
+| **Btn0 – Btn3** | `K18`, `P16`, `K19`, `Y16` | I/O de la PL | Banco PL ($3.3\text{ V}$) | **Compatible** (Mapeados en `.xdc`) |
+| **Btn4** | `B13` | **MIO 50 (PS)** | **Incompatible** (Exclusivo del procesador ARM) |
+| **Btn5** | `B9` | **MIO 51 (PS)** | **Incompatible** (Exclusivo del procesador ARM) |
 
-* **Causa Técnica del Inconveniente:** 
-  Los pines MIO (*Multiplexed I/O*) pertenecen exclusivamente al dominio del **PS**. No poseen trazas de silicio que los conecten directamente con la matriz de conmutación de la FPGA (PL). 
+* **Causa Técnica del Inconveniente:** Los pines MIO pertenecen exclusivamente al dominio del PS, no poseen trazas de silicio que los conecten directamente con la matriz de conmutación de la FPGA (PL). Por ende, si en el archivo `.xdc` se intentara forzar la asignación de un puerto HDL a la ubicación física de Btn4 (`PACKAGE_PIN B13`), la herramienta Vivado abortaría la fase de implementación emitiendo un error crítico, indicando que dicho pin no es accesible por la lógica programable.
 
-  Si en el archivo de restricciones `.xdc` se intentara forzar la asignación de un puerto HDL a la ubicación física de BTN4 (`PACKAGE_PIN B13`), la herramienta Vivado abortaría la fase de Implementación (*Place & Route*) emitiendo un error crítico, indicando que dicho pin no es una E/S accesible por la Lógica Programable.
-
-* **Otros Periféricos MIO:** Esta misma restricción aplica al conector **Pmod JF** y al **LED LD4**, los cuales también están cableados a pines MIO del procesador ARM y son inaccesibles directamente por el código Verilog.
+* **Otros Periféricos MIO:** Esta misma restricción aplica al conector Pmod JF y al LED LD4, los cuales también están cableados a pines MIO del procesador ARM y son inaccesibles directamente por el código Verilog.
 
 ---
 
 #### 3.5.3 Solución Adoptada: Pulsadores Externos en Pmod JC
 
-Para obtener las señales de control de 4 bits adicionales sin recurrir al PS, se utilizaron los pines `V15` y `W15` del conector **Pmod JC**, los cuales sí pertenecen al dominio de E/S de la Lógica Programable (PL)[cite: 6].
+Para obtener las señales de control de 4 bits adicionales sin recurrir al PS, se utilizaron los pines `V15` y `W15` del conector Pmod JC, los cuales sí pertenecen al dominio de E/S de la Lógica Programable (PL). Para ello, se montó un circuito de acondicionamiento en protoboard para cada pulsador utilizando resistencias de Pull-Down de $10\text{ k}\Omega$**:
 
-Se montó un circuito de acondicionamiento en protoboard para cada pulsador utilizando resistencias de **Pull-Down de $10\text{ k}\Omega$**:
+<img width="752" height="581" alt="image" src="https://github.com/user-attachments/assets/53696894-d5f5-434a-9e87-752c1afef729" />
 
-```text
-    VCC (3.3 V tomados del Pmod JC)
-       │
-      ─── Pulsador
-       │
-       ├──────────► Señal de Entrada (Pmod JC Pin 1: V15 / Pin 2: W15)
-       │
-      ┌┴┐
-      │ │ 10 kΩ (Resistencia Pull-Down)
-      └┬┘
-       │
-      GND (Tomado del Pmod JC)
-```
-
-
-
-
-
-
-### 3.4 ¿Por qué no se usaron BTN4 y BTN5 de la tarjeta?
-
-La Zybo Z7 tiene seis pulsadores, pero **solo BTN0–BTN3 están conectados a la lógica programable (PL)**. BTN4 y BTN5 están conectados a pines **MIO** del procesador, por lo que un diseño en Verilog no puede leerlos directamente.
-
-#### 3.4.1 Arquitectura del Zynq-7000: PS y PL
-
-El Zynq-7000 integra dos partes en un mismo chip:
-
-|Parte|Qué es|Cómo se programa|
-|-|-|-|
-|**PS** (*Processing System*)|Procesador ARM Cortex-A9 con sus periféricos (UART, USB, Ethernet, GPIO, controlador de memoria)|Software (C/C++ en Vitis)|
-|**PL** (*Programmable Logic*)|Lógica programable equivalente a una FPGA Artix-7|HDL + `.xdc` en Vivado (lo que se hace en este laboratorio)|
-
-Cada parte tiene sus **propios pines**:
-
-* Los pines de la **PL** son de propósito general: cualquier puerto del módulo `top` se puede asignar a ellos con `PACKAGE\_PIN` en el `.xdc`. Es el caso de los switches, BTN0–BTN3, los LEDs y los Pmod JA–JE.
-* Los pines **MIO** (*Multiplexed I/O*) pertenecen al **PS**. Están cableados internamente al multiplexor de periféricos del procesador y **no tienen conexión con la lógica programable**.
-
-#### 3.4.2 Conexión de BTN4 y BTN5
-
-|Botón|Pin MIO|Pin del encapsulado|Banco / voltaje|Lo lee|
-|-|-|-|-|-|
-|BTN0–BTN3|—|K18, P16, K19, Y16|Banco de la PL, 3.3 V|PL (HDL)|
-|**BTN4**|**MIO 50**|B13|Banco 501 (PS), 1.8 V|Solo el PS|
-|**BTN5**|**MIO 51**|B9|Banco 501 (PS), 1.8 V|Solo el PS|
-
-Por eso, en el archivo `Zybo-Z7.xdc` de Digilent **no existen líneas para BTN4 y BTN5**: no son pines que Vivado pueda asignar a un puerto HDL. Si se intentara forzar `PACKAGE\_PIN B13` para un puerto del `top`, la implementación fallaría porque ese pin no es una E/S de la PL.
-
-Lo mismo ocurre con el **Pmod JF** y con el **LED LD4**: también están conectados a pines MIO, y por eso los botones externos se conectaron al Pmod **JC**, que sí pertenece a la PL.
-
-
-#### 3.4.3 Solución adoptada: pulsadores externos en el Pmod JC
-
-Se conectaron dos pulsadores externos al Pmod JC, cada uno con una resistencia de **pull-down de 10 kΩ**. Es la misma configuración que usa la tarjeta para BTN4 y BTN5, pero alimentada a 3.3 V para coincidir con el estándar `LVCMOS33` de los pines de la PL.
-
-```
- VCC3V3 (Pmod JC)
-    │
-   ─┴─  pulsador
-    │
-    ├──────────►  JC pin 1 (Señal)
-    │
-   ┌┴┐
-   │ │ 10 kΩ  (pull-down)
-   └┬┘
-    │
-   GND (Pmod JC)
-```
-
-* **Sin pulsar:** la resistencia lleva el pin a 0 V → `btn = 0`.
-* **Pulsado:** el pin queda conectado a 3.3 V → `btn = 1`.
-
-Así los botones externos son activos en alto, igual que BTN0–BTN3, y el HDL los trata de la misma forma.
-
-### 3.4 Operaciones implementadas
-
-```verilog
-// Aritmética de 4 bits: btn\[5] = 1 -> suma, btn\[5] = 0 -> resta
-wire \[3:0] res\_aritmetico = btn\[5] ? (operando\_a + operando\_b) : (operando\_a - operando\_b);
-
-// Lógicas
-wire \[3:0] res\_and = operando\_a \& operando\_b;
-wire \[3:0] res\_or  = operando\_a | operando\_b;
-wire \[3:0] res\_xor = operando\_a ^ operando\_b;
-```
-
-|Operación|Dónde se usa|
-|-|-|
-|**Suma / resta** de 4 bits|`LED\[3:0]`|
-|**AND**|Canal rojo del RGB|
-|**OR**|Canal verde del RGB|
-|**XOR**|Canal azul del RGB e inversión de B|
-
-El resultado aritmético es de 4 bits **sin acarreo ni préstamo**: se muestra módulo 16. Por ejemplo, `10 - 12 = -2` se ve como `1110` (complemento a 2) y `12 + 5 = 17` se ve como `0001`.
-
-**Comparación de claves:** dos números son iguales si y solo si su XOR es cero. Por eso, cuando A = B, el canal azul (`|res\_xor`) se apaga y la igualdad se detecta automáticamente, sin importar el modo aritmético seleccionado.
-
-### 3.5 Salidas
-
-|Salida|Pin|Significado|
-|-|-|-|
-|`led\[3:0]`|LD3–LD0|Resultado de A − B o A + B|
-|`led\_rgb\[0]` (R)|V16|`\|(A \& B)`: A y B tienen al menos un bit en 1 en común|
-|`led\_rgb\[1]` (G)|F17|`\|(A \| B)`: al menos uno de los operandos es distinto de cero|
-|`led\_rgb\[2]` (B)|M17|`\|(A ^ B)`: A y B son distintos|
-
-Como los tres canales dependen de A y B, **solo pueden aparecer cuatro colores**. Por ejemplo, si el AND tiene algún bit en 1, el OR también lo tiene, así que el rojo nunca aparece solo:
-
-|Condición|AND|OR|XOR|Color|Combinaciones (de 256)|
-|-|-|-|-|-|-|
-|A = B = 0|0|0|0|Apagado|1|
-|**A = B ≠ 0 (claves iguales)**|1|1|0|**Amarillo** (R + G)|15|
-|A ≠ B, sin bits en común (p. ej. complementarias)|0|1|1|Cian (G + B)|80|
-|A ≠ B, con algún bit en común|1|1|1|Blanco (R + G + B)|160|
-
-El **amarillo** indica que las claves coinciden. El caso A = B = 0 también es una igualdad, pero se ve apagado porque AND y OR son cero.
 
 ### 3.6 Simulación
 
