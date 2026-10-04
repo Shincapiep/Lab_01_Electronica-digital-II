@@ -197,16 +197,38 @@ Una vez cargado el bitstream en la FPGA, el LED RGB comenzó la secuencia cícli
 
 \---
 
-## 3\. Test funcional personalizado: comparador de claves
+## 3\. Test funcional personalizado: Comparador de claves
 
-### 3.1 Descripción del diseño
+### 3.1 Objetivo del Ejercicio
 
-El módulo `comparador\_claves` es un circuito **100 % combinacional** que toma dos operandos de 4 bits, una "clave principal" (A) fijada con los switches y una "clave ingresada" (B) formada con los botones, y sobre ellos realiza:
+* Diseñar e implementar un módulo combinacional en Verilog (`comparador_claves.v`) que procese la interacción entre una clave principal (operando A) y una clave ingresada (operando B).
+* Implementar una máscara de seguridad XOR de 4 bits para invertir el operando B mediante un pulsador de control (`btn[4]`).
+* Integrar un bloque aritmético de 4 bits capaz de realizar operaciones de suma y resta seleccionables mediante un bit de control (`btn[5]`), visualizando el resultado binario en los Leds individuales y monocromáticos (`led[3:0]`).
+* Aplicar operaciones lógicas combinacionales (AND, OR y XOR) sobre los operandos y utilizar operadores de OR para conmutar los canales del LED RGB (`led_rgb[2:0]`) como indicadores de estado.
+* Validar el comportamiento combinacional y las transiciones de señales mediante simulación en GTKWave (`tb_comparador_claves.v`) y verificar la implementación en hardware real mapeando switches (`sw[3:0]`), pulsadores integrados (`btn[3:0]`), botones externos en puerto Pmod (`btn[4:5]`) y LEDs de la tarjeta Zybo Z7.
 
-* Una **suma o resta** de 4 bits, cuyo resultado se muestra en `LED\[3:0]`.
-* Las operaciones **AND, OR y XOR** bit a bit, cuyo resultado se resume en el LED RGB. En particular, la combinación de colores permite saber si las dos claves son **iguales**.
+### 3.2 Lógica del Ejercicio
 
-Un botón adicional aplica una ** XOR** que invierte B antes de operar.
+El módulo `comparador_claves` constituye un circuito puramente combinacional, por lo que no tiene una Máquina de Estados Finitos (FSM). Esto se justifica por las siguientes razones:
+* **Ausencia de señal de reloj (`clk`):** Las FSMs son sistemas secuenciales síncronos que requieren una señal de reloj para marcar la transición entre estados. El módulo opera sin señal de reloj.
+* **Ausencia de elementos de memoria (Flip-Flops):** No existen registros destinados a almacenar un estado actual o un estado futuro, ya que su arquitectura se compone únicamente de asignaciones continuas e interconexiones.
+* **Respuesta instantánea de salidas:** Las salidas `led[3:0]` y `led_rgb[2:0]` se recalculan en tiempo real en función de los valores presentes en las entradas `sw[3:0]` y `btn[5:0]`, estando limitadas únicamente por el retardo de propagación de las compuertas lógicas de la FPGA.
+
+Por otro lado, para realizar la ASM de este ejercicio hay que tener en cuenta que, generalmente, la ASM se utiliza para describir el comportamiento de una FSM secuencial, por lo que en este tipo de ejercicios se emplea el modelo de ASM de estado único para formalizar el flujo algorítmico de los datos. Este se presenta en la siguiente imagen:
+
+<img width="377" height="637" alt="image" src="https://github.com/user-attachments/assets/e351df18-2e8f-4621-8ef5-be1c5632a48f" />
+
+Como se puede ver, la ASM del consta de un único bloque de estado (S0), del cual parten los caminos condicionales determinados por las entradas de control, su funcionamiento sería el siguiente:
+
+1. **Captura de Entrada:** La variable `operando_a` toma directamente el valor del bus `sw[3:0]`.
+2. **Evaluación de Máscara XOR (`btn[4]`):** 
+   * Si `btn[4] = 1`, la señal `btn[3:0]` pasa por una compuerta XOR con `4'b1111` (inversión de bits).
+   * Si `btn[4] = 0`, la señal `btn[3:0]` se asigna directamente a `operando_b`.
+3. **Selección Aritmética (`btn[5]`):**
+   * Si `btn[5] = 1`, el sistema ejecuta una suma de la forma `operando_a + operando_b`.
+   * Si `btn[5] = 0`, el sistema ejecuta una resta de la forma `operando_a - operando_b`.
+4. **Cálculo Lógico y Salidas:** Se ejecutan en paralelo las operaciones AND, OR y XOR sobre los operandos a y b. Los resultados de 4 bits se definen mediante compuertas OR para determinar la conmutación de los canales Rojo, Verde y Azul del Led RGB (`led_rgb[2:0]`), mientras que `res_aritmetico` establece la salida `led[3:0]`.
+
 
 ### 3.2 Entradas y construcción de operandos
 
