@@ -266,9 +266,10 @@ El módulo `comparador_claves` implementa una ALU de 4 bits puramente combinacio
    
 5.  **Control de los Leds:**
    Aplica el operador de reducción OR (`|`) sobre los resultados vectoriales de 4 bits. Este operador evalúa todos los bits del vector y devuelve un único bit (1 o 0):
-   * Canal Rojo (`led_rgb[0]`): Se enciende si `|res_and = 1`, indicando que ambos operandos coinciden en el valor '1' en al menos una posición.
-   * Canal Verde (`led_rgb[1]`): Se enciende si `|res_or = 1`, indicando que existe al menos un bit en '1' entre ambos operandos
-   * Canal Azul (`led_rgb[2]`): Se enciende si `|res_xor = 1`, indicando disparidad o diferencia en al menos una posición de bit entre los operandos.
+   * **Representación Valor Final:** Los leds `led[3:0]` representan el resultado de la operación aritmética realiza entre los operando A y B. Siendo el bit más significativo el `led[3]` y el menos significaativo el `led[0]`.
+   * **Canal Rojo (`led_rgb[0]`):** Se enciende si `|res_and = 1`, indicando que ambos operandos coinciden en el valor '1' en al menos una posición.
+   * **Canal Verde (`led_rgb[1]`):** Se enciende si `|res_or = 1`, indicando que existe al menos un bit en '1' entre ambos operandos
+   * **Canal Azul (`led_rgb[2]`):** Se enciende si `|res_xor = 1`, indicando disparidad o diferencia en al menos una posición de bit entre los operandos.
    ```verilog
    assign led[3:0] = res_aritmetico;
 
@@ -384,8 +385,84 @@ Para obtener las señales de control de 4 bits adicionales sin recurrir al PS, s
 
 <img width="752" height="581" alt="image" src="https://github.com/user-attachments/assets/53696894-d5f5-434a-9e87-752c1afef729" />
 
+### 3.6 Testbench:
 
-### 3.6 Simulación
+Para verificar la corrección lógica y funcional del módulo combinacional `comparador_claves` antes de su sintesis e implementación en hardware, se desarrolló su respectivo Testbench en el archivo `tb_comparador_claves.v`.
+
+#### 3.6.1 Estructura del Banco de Pruebas (`tb_comparador_claves.v`)
+
+Los elementos principales del testbench son:
+
+1. **Declaración de Señales de Estímulo y Monitoreo:**
+   * **Entradas (`reg`):** Se declaran `sw[3:0]` y `btn[5:0]` como tipos `reg` para asignar distintos valores en bloques `initial`.
+   * **Salidas (`wire`):** Se declaran `led[3:0]` y `led_rgb[2:0]` como tipos `wire` para capturar en tiempo real las respuestas que tendrá el circuito.
+
+2. **Instanciación de la Unidad Bajo Prueba (UUT):**
+   * Se conecta la UUT (`comparador_claves`) mapeando por nombre cada puerto con las señales locales del testbench (`.sw(sw)`, `.btn(btn)`, etc.).
+
+3. **Generación de Archivo VCD para GTKWave:**
+   * Se incluyen las tareas del sistema `$dumpfile("tb_comparador_claves.vcd")` y `$dumpvars(0, tb_comparador_claves)` para mostrar todos los cambios de estado de las señales en un archivo `.vcd`.
+
+#### 3.6.2 Desglose Secuencial de los Casos de Prueba
+
+El bloque `initial` evalúa 5 casos combinacionales:
+
+* **Estado Inicial (t = 0 ns):**
+  * `sw = 4'b0000`, `btn = 6'b000000`. Se establece el punto de partida en cero durante 10 ns.
+
+* **Caso 1: Resta Simple sin Máscara (t = 10 ns):**
+  * **Entrada:** `sw = 4'b1010` (10), `btn = 6'b000011` (`btn[5]=0` Resta, `btn[4]=0` Pass, `btn[3:0]=3`).
+  * **Comportamiento Esperado:** Operando A = 10, Operando B = 3.
+  * **Salida Esperada:** 10 - 3 = 7 $\rightarrow$ `led = 4'b0111`. RGB en Blanco (`3'b111`).
+
+* **Caso 2: Resta con Máscara XOR Activa (t = 30 ns):**
+  * **Entrada:** `sw = 4'b1010` (10), `btn = 6'b010011` (`btn[5]=0` Resta, `btn[4]=1` Máscara XOR, `btn[3:0]=3`).
+  * **Comportamiento Esperado:** Operando A = 10, Operando B = `0011 \oplus 1111 = 1100_2` (12).
+  * **Salida Esperada:** 10 - 12 = -2 $\rightarrow$ `led = 4'b1110` (14 en complemento a 2). RGB en Blanco (`3'b111`).
+
+* **Caso 3: Suma sin Máscara (t = 50 ns):**
+  * **Entrada:** `sw = 4'b0101` (5), `btn = 6'b100011` (`btn[5]=1` Suma, `btn[4]=0` Pass, `btn[3:0]=3`).
+  * **Comportamiento Esperado:** Operando A = 5, Operando B = 3.
+  * **Salida Esperada:** 5 + 3 = 8 $\rightarrow$ `led = 4'b1000`. RGB en Blanco (`3'b111`).
+
+* **Caso 4: Verificación RGB con Entradas Idénticas (t = 70 ns):**
+  * **Entrada:** `sw = 4'b1100` (12), `btn = 6'b001100` (`btn[5]=0` Resta, `btn[4]=0` Pass, `btn[3:0]=12`).
+  * **Comportamiento Esperado:** Operando A = 12, Operando B = 12.
+  * **Salida Esperada:** 12 - 12 = 0 $\rightarrow$ `led = 4'b0000`.
+  * **Respuesta Lógica:** `res_and = 1100` y `res_or = 1100`, mientras que `res_xor = 0000`. RGB = `3'b011` (Rojo + Verde = Amarillo).
+
+* **Caso 5: Verificación RGB con Entradas Complementarias (t = 90 ns):**
+  * **Entrada:** `sw = 4'b1010` (10), `btn = 6'b000101` (`btn[5]=0` Resta, `btn[4]=0` Pass, `btn[3:0]=5`).
+  * **Comportamiento Esperado:** Operando A = `1010₂` (10), Operando B = `0101₂` (5).
+  * **Salida Esperada:** 10 - 5 = 5 $\rightarrow$ `led = 4'b0101`.
+  * **Respuesta Lógica:** `res_and = 0000` (Rojo Off), `res_or = 1111` (Verde On), `res_xor = 1111` (Azul On). RGB = `3'b110` (Verde + Azul = Cyan).
+
+---
+
+#### 3.6.3 Comandos para Compilación y Ejecución
+
+Se utilizó la terminal de Visual Studio Code para ejecutar la compilación del código mediante el ejecutable de Icarus Verilog (iverilog) especificando el nombre del archivo de salida compilado:
+```bash
+iverilog -o tb_comparador_claves.vvp comparador_claves.v tb_comparador_claves.v
+```
+A continuación, se ejecutó el motor de simulación vvp para procesar el binario y generar el archivo `.vcd` correspondiente:
+```bash
+vvp tb_comparador_claves.vvp
+```
+Se abrió la herramienta GTKWave y se cargó el archivo de simulación .vcd generado.
+```bash
+gtkwave tb_comparador_claves.vcd
+```
+
+#### 3.6.4 Simulación en GTKwave:
+
+En la siguiente imágen se observa el resultado de la simulación en gtkwave:
+
+<img width="987" height="218" alt="image" src="https://github.com/user-attachments/assets/ed7b281f-75eb-4452-a257-42c4751dd7b3" />
+
+
+
+
 
 
 ### 3.7 Evidencia en hardware
