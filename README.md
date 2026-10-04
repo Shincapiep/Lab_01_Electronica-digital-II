@@ -319,6 +319,7 @@ set_property -dict { PACKAGE_PIN F17   IOSTANDARD LVCMOS33 } [get_ports { led_rg
 set_property -dict { PACKAGE_PIN M17   IOSTANDARD LVCMOS33 } [get_ports { led_rgb[2] }]; # Canal Azul
 
 ```
+La tabla que se presenta a continuación resume el mapeo de pines realizado en `Pines_Comparador_Claves`:
 
 | Señal HDL | Pin FPGA | Periférico Físico | Función Lógica en el Circuito |
 |---|---|---|---|
@@ -340,11 +341,72 @@ set_property -dict { PACKAGE_PIN M17   IOSTANDARD LVCMOS33 } [get_ports { led_rg
 | `led_rgb[1]` | **F17** | Led RGB LD6 - Canal Verde | Indicador Lógico OR (`res_or`) |
 | `led_rgb[2]` | **M17** | Led RGB LD6 - Canal Azul | Indicador Lógico XOR (`res_xor`) |
 
+**Extensión de Entradas vía Puerto Pmod JC:** Dado que la tarjeta Zybo Z7 cuenta físicamente únicamente con 4 pulsadores integrados (`btn[3:0]`), se requirió ampliar el valor botones a 6 bits para añadir las señales de control de máscara y modo. Se asignaron los pines V15 y W15 del conector Pmod JC para conectar dos pulsadores externos en protoboard.
+
+**Ausencia de Restricción de Reloj:** A diferencia del diseño secuencial del semáforo, en este ejercicio no se habilita el pin del reloj principal K17, ni la instrucción `create_clock`. Al tratarse de un circuito puramente combinacional, Vivado no requiere realizar el análisis estático de tiempos basado en periodo de reloj, optimizando la etapa de síntesis e implementación.
+
+**Coincidencia Exacta con la Interfaz del Módulo:** Las etiquetas utilizadas dentro de `get_ports` coinciden con los nombres declarados en el módulo `comparador_claves.v` (`sw[3:0]`, `btn[5:0]`, `led[3:0]` y `led_rgb[2:0]`), asegurando el enlace correcto de la red combinacional de la FPGA.
+
+### 3.5 Justificación Hardware: Uso de Pulsadores Externos en Puerto Pmod JC
+
+Para el funcionamiento del comparador de claves se requerían 6 señales de entrada definidas mediante pulsadores (`btn[5:0]`), cuatro bits para la clave ingresada (`btn[3:0]`), un bit para la máscara XOR (`btn[4]`) y un bit para el selector de modo de la ALU (`btn[5]`).
+
+A pesar de que la tarjeta Zybo Z7 dispone físicamente de seis pulsadores integrados, fue indispensable añadir dos pulsadores externos mediante el puerto Pmod JC, debido a la arquitectura interna del chip Zynq-7000.
+
+#### 3.5.1 Arquitectura del SoC Zynq-7000: PS vs. PL
+
+El SoC Zynq-7000 de Xilinx/AMD integra dos bloques conceptuales y físicos independientes dentro del mismo encapsulado:
+
+| Sistema | Descripción / Componentes | Entorno de Programación | Conexión de Pines I/O |
+| :--- | :--- | :--- | :--- |
+| **PS** (*Processing System*) | Procesador ARM Cortex-A9 y sus periféricos integrados (UART, USB, Ethernet, controladores de memoria y GPIOs de sistema). | Software (C/C++) en el entorno Vitis. | Pines MIO (*Multiplexed I/O*). **Sin acceso directo desde lógica HDL.** |
+| **PL** (*Programmable Logic*) | Matriz de Lógica Programable equivalente a una FPGA Artix-7. | Lenguajes HDL (Verilog/VHDL) y archivos `.xdc` en Vivado. | Pines de la PL. **Totalmente mapeables mediante la directiva `PACKAGE_PIN`.** |
+
+---
+
+#### 3.5.2 Limitación Física de los Pulsadores BTN4 y BTN5
+
+Los pulsadores de la tarjeta Zybo Z7 no comparten la misma infraestructura de conexión eléctrica:
+
+| Botón / Periférico | Pin del SoC | Tipo de Pin | Banco y Voltaje | Compatibilidad con Verilog (PL) |
+| :---: | :---: | :---: | :---: | :---: |
+| **BTN0 – BTN3** | `K18`, `P16`, `K19`, `Y16` | I/O de la PL | Banco PL ($3.3\text{ V}$) | **Compatible** (Mapeados en `.xdc`) |
+| **BTN4** | `B13` | **MIO 50 (PS)** | Banco 501 - PS ($1.8\text{ V}$) | **Incompatible** (Exclusivo del procesador ARM) |
+| **BTN5** | `B9` | **MIO 51 (PS)** | Banco 501 - PS ($1.8\text{ V}$) | **Incompatible** (Exclusivo del procesador ARM) |
+
+* **Causa Técnica del Inconveniente:** 
+  Los pines MIO (*Multiplexed I/O*) pertenecen exclusivamente al dominio del **PS**. No poseen trazas de silicio que los conecten directamente con la matriz de conmutación de la FPGA (PL). 
+
+  Si en el archivo de restricciones `.xdc` se intentara forzar la asignación de un puerto HDL a la ubicación física de BTN4 (`PACKAGE_PIN B13`), la herramienta Vivado abortaría la fase de Implementación (*Place & Route*) emitiendo un error crítico, indicando que dicho pin no es una E/S accesible por la Lógica Programable.
+
+* **Otros Periféricos MIO:** Esta misma restricción aplica al conector **Pmod JF** y al **LED LD4**, los cuales también están cableados a pines MIO del procesador ARM y son inaccesibles directamente por el código Verilog.
+
+---
+
+#### 3.5.3 Solución Adoptada: Pulsadores Externos en Pmod JC
+
+Para obtener las señales de control de 4 bits adicionales sin recurrir al PS, se utilizaron los pines `V15` y `W15` del conector **Pmod JC**, los cuales sí pertenecen al dominio de E/S de la Lógica Programable (PL)[cite: 6].
+
+Se montó un circuito de acondicionamiento en protoboard para cada pulsador utilizando resistencias de **Pull-Down de $10\text{ k}\Omega$**:
+
+```text
+    VCC (3.3 V tomados del Pmod JC)
+       │
+      ─── Pulsador
+       │
+       ├──────────► Señal de Entrada (Pmod JC Pin 1: V15 / Pin 2: W15)
+       │
+      ┌┴┐
+      │ │ 10 kΩ (Resistencia Pull-Down)
+      └┬┘
+       │
+      GND (Tomado del Pmod JC)
+```
 
 
 
-|`btn\[4]`|Pulsador externo, Pmod JC|V15|Máscara XOR: invierte B (`B ^ 4'b1111`)|
-|`btn\[5]`|Pulsador externo, Pmod JC|W14|Modo aritmético: 0 = resta (por defecto), 1 = suma|
+
+
 
 ### 3.4 ¿Por qué no se usaron BTN4 y BTN5 de la tarjeta?
 
@@ -399,14 +461,6 @@ Se conectaron dos pulsadores externos al Pmod JC, cada uno con una resistencia d
 * **Pulsado:** el pin queda conectado a 3.3 V → `btn = 1`.
 
 Así los botones externos son activos en alto, igual que BTN0–BTN3, y el HDL los trata de la misma forma.
-
-Líneas agregadas al `.xdc`:
-
-```tcl
-## Pulsadores externos en Pmod JC
-set\_property -dict { PACKAGE\_PIN V15 IOSTANDARD LVCMOS33 } \[get\_ports { btn\[4] }]; # JC pin 1
-set\_property -dict { PACKAGE\_PIN W14 IOSTANDARD LVCMOS33 } \[get\_ports { btn\[5] }]; # JC pin 7
-```
 
 ### 3.4 Operaciones implementadas
 
