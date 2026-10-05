@@ -106,7 +106,7 @@ El módulo `Smoke_Test_FPGA` implementa el control secuencial de un LED RGB medi
 
 <img width="1020" height="636" alt="image" src="https://github.com/user-attachments/assets/614f322c-1f2d-44f0-bc9b-bce3210997c4" />
 
-1. **Contador Principal:** El primer bloque corresponde al contador principal, cuya función es manejar los tiempos para determinar el momento en que debe cambiar el color del LED. La variable `counter` se inicializa en cero y se incrementa en una unidad en cada ciclo de reloj. Cuando el contador alcanza el valor de 320\,000\,000$, se reinicia a cero, permitiendo que la secuencia de colores se repita continuamente. Esto ocurre en el fragmento:
+1. **Contador Principal:** El primer bloque corresponde al contador principal, cuya función es manejar los tiempos para determinar el momento en que debe cambiar el color del LED. La variable `counter` se inicializa en cero y se incrementa en una unidad en cada ciclo de reloj. Cuando el contador alcanza el valor de 320\,000\,000, se reinicia a cero, permitiendo que la secuencia de colores se repita continuamente. Esto ocurre en el fragmento:
 ```verilog
 if (counter>=320000000) //Contador adaptado para la FPGA
         counter <= 0;
