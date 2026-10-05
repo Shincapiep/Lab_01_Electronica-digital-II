@@ -102,7 +102,9 @@ Como se puede ver en la imagen anterior, el comportamiento de la prueba fue el e
 
 ### 3.4 Funcionamiento y Análisis del Código
 
-El módulo `Smoke_Test_FPGA` implementa el control secuencial de un LED RGB mediante una señal de reloj `clk`. El módulo recibe como entrada la señal de reloj de la FPGA y genera una salida de 3 bits `led[2:0]` conectada a los canales del LED RGB LD6 de la tarjeta Zybo Z7. El funcionamiento del diseño se basa en una arquitectura secuencial implementada mediante dos bloques `always @(posedge clk)`, los cuales se ejecutan en cada flanco ascendente de la señal de reloj:
+El módulo `Smoke_Test_FPGA` implementa el control secuencial de un LED RGB mediante una señal de reloj `clk`. El módulo recibe como entrada la señal de reloj de la FPGA y genera una salida de 3 bits `led[2:0]` conectada a los canales del LED RGB LD6 de la tarjeta Zybo Z7. El funcionamiento del diseño se basa en una arquitectura secuencial implementada mediante dos bloques `always @(posedge clk)`, los cuales se ejecutan en cada flanco ascendente de la señal de reloj. Para entender mejor la lógica de este circuito, se diseño el diagrama de flujo de la ASM donde se describe de manera simple el paso a paso que debe seguir el código para representar el funcionamiento de un semáforo:
+
+<img width="1020" height="636" alt="image" src="https://github.com/user-attachments/assets/614f322c-1f2d-44f0-bc9b-bce3210997c4" />
 
 1. **Contador Principal:** El primer bloque corresponde al contador principal, cuya función es manejar los tiempos para determinar el momento en que debe cambiar el color del LED. La variable `counter` se inicializa en cero y se incrementa en una unidad en cada ciclo de reloj. Cuando el contador alcanza el valor de 320\,000\,000$, se reinicia a cero, permitiendo que la secuencia de colores se repita continuamente. Esto ocurre en el fragmento:
 ```verilog
